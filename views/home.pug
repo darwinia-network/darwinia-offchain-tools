@@ -1,0 +1,34 @@
+extends layout
+
+block content
+  h1 Cross-chain Verification Demo
+  p.lead 以太坊跨链验证Demo(基础版)
+  hr
+  .row
+    .col-sm-6
+      h2 Step 1
+      p 开启Eth Relay模块后，worker程序(任何人都可以运行)将不断中继以太坊上的区块头至Darwinia网络. Eth Relay将提供跨链验证的服务。
+      p
+        a.btn.btn-secondary#burnring(href='javascript:startRelayServer()', role='button') Start Ethereum Relay Server»
+        a.btn.btn-danger#burnring(href='javascript:stopRelayServer()', role='button') Stop»
+      span#serverStatus Status: ...
+    .col-sm-6
+      h2 Step 2
+      p 举一个例子演示去中心化背书技术，例如, Darwinia网络作为原生链具有背书模块并运行Eth Relay，想在需要将以太坊网络上的ERC-20 RING赎回至Darwinia网络，首先发起销毁和赎回交易。
+      p
+        a.btn.btn-secondary#burnring(href='javascript:burnring()', role='button') Burn and redeem Token "RING" ( Ropsten )»
+      span#txHash Ethereum (Ropsten) txHash: ...
+    .col-sm-6
+      h2 Step 3
+      p 在以太坊网络上发起的销毁和赎回交易确认后，通过以下服务将可以计算并生成交易收据证明，并将该交易收据证明提交至Darwinia 网络Eth Relay跨链验证证明，证明通过后将可以继续后续赎回动作。
+      p
+        a.btn.btn-secondary#burnring(href='javascript:checkReceipt()', role='button') Check Receipt Proof»
+      span Ropsten Ethereum txHash:
+      input#initDarwiniaTxhash(type='text')
+      p#darwiniaHash Darwinia Network (Alpha) txHash: ...
+    .col-sm-6
+      h2 Darwinia Network
+      p 背书和赎回模块正在开发中，交易第三部验证通过后将会调用赎回模块赎回锁定在背书模块中的RING至目标地址.
+      p
+        a.btn.btn-secondary(href='https://darwinia.network', role='button', target='_blank') View WebSite »
+

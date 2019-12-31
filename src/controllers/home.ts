@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import Starter from "../ethereum/Starter";
+// import Starter from "../ethereum/Starter";
 import { fork, ChildProcess } from "child_process";
 import { join } from "path";
 import ProofSubmit from "../ethereum/Proof";
 import logger from "../util/logger";
 
-const ethereumProofStarter = new Starter();
-ethereumProofStarter.startAPI();
+// const ethereumProofStarter = new Starter();
+// ethereumProofStarter.startAPI();
 
 const proofSubmit = new ProofSubmit();
 

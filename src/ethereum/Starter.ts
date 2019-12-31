@@ -14,14 +14,15 @@ export default class Starter {
     async start(): Promise<any> {
         try {
             logger.info("starting proof server!");
+            process.send({ starter: ""});
             await api.start();
             this.startBlockChainState();
             this.startSubmitToDarwinia();
         } catch (e) {
             logger.error("Main Starter catch error: " + e);
-            setDelay(5000).then(() => {
-                this.start();
-            });
+            // setDelay(5000).then(() => {
+            //     this.start();
+            // });
         }
     }
 

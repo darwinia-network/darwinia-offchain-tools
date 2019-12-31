@@ -7,6 +7,7 @@ import { BlockNumber } from "web3-core";
 import Config from "./Config";
 import logger from "../util/logger";
 import { setDelay } from "./Utils";
+import process from "process";
 
 export default class Proof {
 
@@ -52,29 +53,36 @@ export default class Proof {
     // @ts-ignore
     async createTx(extrinsic, account, blockNumber, callback): Promise<any> {
         if (!extrinsic) { throw "empty extrinsic"; };
-
+       
         // @ts-ignore
-        return await extrinsic.signAndSend(account, ({ events = [], status }) => {
+        const hash = await extrinsic.signAndSend(account, ({ events = [], status }) => {
+
             if (status.isFinalized) {
                 if (blockNumber) {
                     logger.info("Successful transfer of with hash " + status.asFinalized.toHex() + " blockNumber: " + blockNumber);
                 } else {
                     logger.info("Successful extrinsic of with hash " + status.asFinalized.toHex());
                 }
-                callback && callback(status.asFinalized.toHex());
+                // clearTimeout(timeout);
+                
             } else {
                 console.log("Status of transfer: " + status.type);
                 if (status.type == "Invalid") {
                     // throw "extrinsic Invalid";
-                    callback && callback("Invalid");
+                    // clearTimeout(timeout);
+                    // callback && callback("Invalid");
                 }
             }
-
             // @ts-ignore
             events.forEach(({ phase, event: { data, method, section } }) => {
-                console.log(phase.toString() + " : " + section + "." + method + " " + data.toString());
+                console.log(phase.toString() + " : " + section + ".");
+                if((section + "." + method) === "system.ExtrinsicSuccess") {
+                    callback && callback(status.asFinalized.toHex());
+                }
             });
         });
+
+        console.log(hash);
     }
 
     async checkReceipt(header: string, proof: string, headerHash: string): Promise<any> {
@@ -104,14 +112,19 @@ export default class Proof {
         const web3js = Config.web3;
         const api = Config.polkadotApi;
         const account = Config.KeyringAccount;
-
+        
         if (!Config.EthereumBlockNumberInNode) {
             Config.EthereumBlockNumberInNode = Config.EthereumBlockNumberInChain;
             this.scheduleStarter();
             return;
         }
 
-        const nextBlockNumber = Config.EthereumBlockNumberInNode as number + Config.blockStep;
+        if(Config.EthereumBlockNumberInNode as number + Config.delayStep > Config.EthereumBlockNumberInChain){
+            this.scheduleStarter();
+            return;
+        }
+
+        const nextBlockNumber = parseInt(Config.EthereumBlockNumberInNode.toString()) + Config.blockStep;
 
         const [header, block] = await this.getHeaderInfo(web3js, nextBlockNumber).catch((e) => {
             logger.error(e);
@@ -134,23 +147,32 @@ export default class Proof {
             logger.info("start build relayHeader extrinsic");
             ex = api.tx.ethRelay.relayHeader(header);
         }
-
-        await this.createTx(ex, account, nextBlockNumber, (status: string) => {
-            if (status == "Invalid") {
-                logger.error("createTx Error" + status);
+        try{
+            await this.createTx(ex, account, nextBlockNumber, (status: string) => {
+                if (status == "Invalid") {
+                    logger.error("createTx Error" + status);
+                    this.scheduleStarter();
+                    return;
+                }
+                if (hasResetGenesisHeader) {
+                    Config.hasResetGenesisHeader = true;
+                }
+                this.storageFinalizedBlockNumber(nextBlockNumber);
+                Config.EthereumBlockNumberInNode = nextBlockNumber;
                 this.scheduleStarter();
-                return;
-            }
-            if (hasResetGenesisHeader) {
-                Config.hasResetGenesisHeader = true;
-            }
+            }).catch((e: Error) => {
+                logger.error("createTx Error" + e);
+                this.scheduleStarter();
+            });
+        }catch(e){
+            console.log("createTx timeout: ",e);
+            this.scheduleStarter();
+        };
+        
+    }
 
-            Config.EthereumBlockNumberInNode = nextBlockNumber;
-            this.scheduleStarter();
-        }).catch((e: Error) => {
-            logger.error("createTx Error" + e);
-            this.scheduleStarter();
-        });
+    private storageFinalizedBlockNumber(number: BlockNumber) {
+        process.send({ finalizedBlockNumber: number});
     }
 
     private scheduleStarter(delay: number = Config.startSubmitToDarwiniaDelay) {

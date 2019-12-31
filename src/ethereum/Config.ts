@@ -25,7 +25,7 @@ export default class Config {
 
     static blockStep = 1;
 
-    static delayStep = 2;
+    static delayStep = 6;
 
     static blockchainStateDelay = 20000;
 

@@ -58,13 +58,15 @@ export default class Proof {
         const hash = await extrinsic.signAndSend(account, ({ events = [], status }) => {
 
             if (status.isFinalized) {
-                if (blockNumber) {
-                    logger.info("Successful transfer of with hash " + status.asFinalized.toHex() + " blockNumber: " + blockNumber);
-                } else {
-                    logger.info("Successful extrinsic of with hash " + status.asFinalized.toHex());
-                }
-                // clearTimeout(timeout);
-                
+                logger.info("Successful transfer of with hash " + status.asFinalized.toHex() + " blockNumber: " + blockNumber);
+                // @ts-ignore
+                events.forEach(({ phase, event: { data, method, section } }) => {
+                    console.log(phase.toString() + " : " + section + "." + method);
+                    if((section + "." + method) === "ethRelay.RelayHeader" || (section + "." + method) === "ethRelay.SetGenesisHeader") {
+                        callback && callback(status.asFinalized.toHex());
+                        return;
+                    }
+                });
             } else {
                 console.log("Status of transfer: " + status.type);
                 if (status.type == "Invalid") {
@@ -73,13 +75,7 @@ export default class Proof {
                     // callback && callback("Invalid");
                 }
             }
-            // @ts-ignore
-            events.forEach(({ phase, event: { data, method, section } }) => {
-                console.log(phase.toString() + " : " + section + ".");
-                if((section + "." + method) === "system.ExtrinsicSuccess") {
-                    callback && callback(status.asFinalized.toHex());
-                }
-            });
+            
         });
 
         console.log(hash);

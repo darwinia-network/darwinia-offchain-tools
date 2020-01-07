@@ -10,6 +10,8 @@ export default class Forever {
     private finalizedBlockNumber: BlockNumber;
     private blockTimer: NodeJS.Timeout;
 
+    private killedNumber = 0;
+
     public start() {
         this.startRelay();
         this.forever();
@@ -39,14 +41,17 @@ export default class Forever {
             this.finalizedBlockNumber = fs.readFileSync("finalizedBlockNumber").toString();
         }
         this.forkStarter.send({
-            finalizedBlockNumber: this.finalizedBlockNumber,
+            finalizedBlockNumber: parseInt(this.finalizedBlockNumber.toString()) - (this.killedNumber % 2),
         });
 
         this.forkStarter.on("message", (code) => {
-            console.log("已完成：", code);
+            console.log("finalizedBlockNumber：", code);
             if (code && code.finalizedBlockNumber) {
-                this.finalizedBlockNumber = code.finalizedBlockNumber;
-                this.storageToFile(this.finalizedBlockNumber);
+                if(parseInt(this.finalizedBlockNumber.toString()) + 1 === parseInt(code.finalizedBlockNumber.toString())) {
+                    console.log(this.finalizedBlockNumber, code.finalizedBlockNumber + 1);
+                    this.finalizedBlockNumber = code.finalizedBlockNumber;
+                    this.storageToFile(this.finalizedBlockNumber);
+                }
             }
 
             clearTimeout(this.blockTimer);
@@ -54,19 +59,22 @@ export default class Forever {
             this.blockTimer = setTimeout(() => {
                 logger.info("killing");
                 this.killForkStarter(this.forkStarter);
+                this.killedNumber = this.killedNumber + 1;
             }, 60000);
         });
     };
 
     private forever() {
         setTimeout(() => {
-            logger.info("online....");
+            
             if (!this.forkStarter || this.forkStarter.killed) {
-                logger.info("检测到节点killed，将重启节点");
+                logger.info("killed...");
                 this.forkStarter = null;
                 this.startRelay();
+            } else {
+                logger.info("online...");
             }
             this.forever();
-        }, 30000);
+        }, 120000);
     }
 }

@@ -27,9 +27,9 @@ export default class Config {
 
     static delayStep = 6;
 
-    static blockchainStateDelay = 20000;
+    static blockchainStateDelay = 40000;
 
     static startSubmitToDarwiniaDelay = 5000;
 
-    static hasResetGenesisHeader = true;
+    static hasResetGenesisHeader = false;
 }

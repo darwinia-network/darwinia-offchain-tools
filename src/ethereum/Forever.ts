@@ -45,10 +45,9 @@ export default class Forever {
         });
 
         this.forkStarter.on("message", (code) => {
-            console.log("finalizedBlockNumber：", code);
+            logger.info("finalizedBlockNumber：", code);
             if (code && code.finalizedBlockNumber) {
                 if(parseInt(this.finalizedBlockNumber.toString()) + 1 === parseInt(code.finalizedBlockNumber.toString())) {
-                    console.log(this.finalizedBlockNumber, code.finalizedBlockNumber + 1);
                     this.finalizedBlockNumber = code.finalizedBlockNumber;
                     this.storageToFile(this.finalizedBlockNumber);
                 }

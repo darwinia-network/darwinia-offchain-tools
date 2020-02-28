@@ -1,11 +1,13 @@
 import Config from "./Config";
+import logger from "../util/logger";
+
 export class BlockchainState {
 
     getState(): Promise<any> {
         return BlockchainState.getBlockState().then(([blockInChain]: [number]): number => {
             if(!blockInChain) return;
             Config.EthereumBlockNumberInChain = blockInChain;
-            console.log("blockInChain: ", Config.EthereumBlockNumberInChain);
+            logger.info("blockInChain: " + Config.EthereumBlockNumberInChain);
             return blockInChain;
         });
     }

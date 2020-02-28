@@ -61,14 +61,14 @@ export default class Proof {
                 logger.info("Successful transfer of with hash " + status.asFinalized.toHex() + " blockNumber: " + blockNumber);
                 // @ts-ignore
                 events.forEach(({ phase, event: { data, method, section } }) => {
-                    console.log(phase.toString() + " : " + section + "." + method);
+                    logger.info(phase.toString() + " : " + section + "." + method);
                     if((section + "." + method) === "ethRelay.RelayHeader" || (section + "." + method) === "ethRelay.SetGenesisHeader") {
                         callback && callback(status.asFinalized.toHex());
                         return;
                     }
                 });
             } else {
-                console.log("Status of transfer: " + status.type);
+                logger.info("Status of transfer: " + status.type);
                 if (status.type == "Invalid") {
                     // throw "extrinsic Invalid";
                     // clearTimeout(timeout);
@@ -78,7 +78,7 @@ export default class Proof {
             
         });
 
-        console.log(hash);
+        logger.info(hash);
     }
 
     async checkReceipt(header: string, proof: string, headerHash: string): Promise<any> {
@@ -161,7 +161,7 @@ export default class Proof {
                 this.scheduleStarter();
             });
         }catch(e){
-            console.log("createTx timeout: ",e);
+            logger.info("createTx timeout: ",e);
             this.scheduleStarter();
         };
         

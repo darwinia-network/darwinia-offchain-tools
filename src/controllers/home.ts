@@ -63,7 +63,7 @@ export const checkReceipt = async (req: Request, res: Response) => {
             data: e.toString()
         });
     });
-    console.log(status);
+    logger.info(status);
     res.json({
         error: 0,
         data: status

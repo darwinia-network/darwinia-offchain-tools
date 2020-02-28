@@ -9,6 +9,8 @@ import testKeyring from "@polkadot/keyring/testingPairs";
 
 const customizeType: any = {
 	"EpochDuration": "u64",
+	"MomentT": "u64",
+	"DepositId": "u256",
 	"BalanceLock": {
 		"id": "LockIdentifier",
 		"withdraw_lock": "WithdrawLock",
@@ -97,13 +99,13 @@ const customizeType: any = {
 		"who": "AccountId",
 		"value": "Compact<Power>"
 	},
-	"Kton": "Balance",
+	"KtonBalance": "Balance",
 	"NominatorReward": {
 		"who": "AccountId",
 		"amount": "Compact<Balance>"
 	},
 	"Power": "u128",
-	"Ring": "Balance",
+	"RingBalance": "Balance",
 	"SlashJournalEntry": {
 		"who": "AccountId",
 		"amount": "Compact<Power>",
@@ -154,7 +156,7 @@ export default class API {
         });
     }
 
-    setKeyringAccount(): void {
+	setKeyringAccount(): void {
         const keypair = new Keyring({ type: "ed25519" });
         let account = null;
         if(config.get("KEYRING") != "") {

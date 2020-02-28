@@ -26,8 +26,8 @@
         "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\""
     },
     "dependencies": {
-        "@polkadot/api": "0.97.1",
-        "@polkadot/util": "1.7.0-beta.5",
+        "@polkadot/api": "^1.4.0-beta.41",
+        "@polkadot/util": "^2.5.1",
         "async": "^3.1.0",
         "bcrypt-nodejs": "^0.0.3",
         "bluebird": "^3.5.5",
@@ -97,6 +97,6 @@
         "supertest": "^4.0.2",
         "ts-jest": "^24.1.0",
         "ts-node": "^8.4.1",
-        "typescript": "^3.6.3"
+        "typescript": "^3.8.2"
     }
 }

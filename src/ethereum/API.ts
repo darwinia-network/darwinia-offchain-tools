@@ -157,10 +157,10 @@ export default class API {
     }
 
 	setKeyringAccount(): void {
-        const keypair = new Keyring({ type: "ed25519" });
-        let account = null;
+        const keypair = new Keyring({ type: "sr25519" });
+    let account = null;
         if(config.get("KEYRING") != "") {
-            account = keypair.addFromSeed(hexToU8a(config.get("KEYRING")));
+            account = keypair.addFromMnemonic(config.get("KEYRING"));
         } else {
             account = testKeyring().alice; 
         }

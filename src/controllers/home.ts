@@ -5,9 +5,6 @@ import { join } from "path";
 import ProofSubmit from "../ethereum/Proof";
 import logger from "../util/logger";
 
-// const ethereumProofStarter = new Starter();
-// ethereumProofStarter.startAPI();
-
 const proofSubmit = new ProofSubmit();
 
 let forkStarter: ChildProcess;
@@ -56,14 +53,12 @@ export const getRelay = async (req: Request, res: Response) => {
 };
 
 export const checkReceipt = async (req: Request, res: Response) => {
-    logger.info(req.body);
     const status = await proofSubmit.checkReceipt(req.body.index, req.body.proof, req.body.header_hash).catch((e) => {
         res.json({
             error: 1,
             data: e.toString()
         });
     });
-    logger.info(status);
     res.json({
         error: 0,
         data: status

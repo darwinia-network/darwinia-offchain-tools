@@ -143,41 +143,41 @@ const customizeType: any = {
 };
 
 export default class API {
-    async setPolkadotJs(): Promise<any> {
-        const provider = new WsProvider(config.get("DARWINIA_RPC_SERVER"));
-        const api = await this.createApi(provider);
-        Config.polkadotApi = api;
-    }
+	async setPolkadotJs(): Promise<any> {
+		const provider = new WsProvider(config.get("DARWINIA_RPC_SERVER"));
+		const api = await this.createApi(provider);
+		Config.polkadotApi = api;
+	}
 
-    async createApi(provider: any): Promise<any> {
-        return await ApiPromise.create({
-            types: customizeType,
-            provider: provider
-        });
-    }
+	async createApi(provider: any): Promise<any> {
+		return await ApiPromise.create({
+			types: customizeType,
+			provider: provider
+		});
+	}
 
 	setKeyringAccount(): void {
-        const keypair = new Keyring({ type: "sr25519" });
-    let account = null;
-        if(config.get("KEYRING") != "") {
-            account = keypair.addFromMnemonic(config.get("KEYRING"));
-        } else {
-            account = testKeyring().alice; 
-        }
-        Config.KeyringAccount = account;
-        Config.KeyringAccountBob =  testKeyring().bob; 
-    }
+		const keypair = new Keyring({ type: "sr25519" });
+		let account = null;
+		if (config.get("KEYRING") != "") {
+			account = keypair.addFromMnemonic(config.get("KEYRING"));
+		} else {
+			account = testKeyring().alice;
+		}
+		Config.KeyringAccount = account;
+		Config.KeyringAccountBob = testKeyring().bob;
+	}
 
-    async start(): Promise<any> {
-        try {
-            await this.setPolkadotJs();
-            logger.info("polkadotjs init success!");
-            this.setKeyringAccount();
-        } catch (error) {
-            logger.info("resetPolkadotJs! " + error);
-            setDelay(20000).then(async () => {
-                await this.start();
-            });
-        }
-    }
+	async start(): Promise<any> {
+		try {
+			await this.setPolkadotJs();
+			logger.info("polkadotjs init success!");
+			this.setKeyringAccount();
+		} catch (error) {
+			logger.info("resetPolkadotJs! " + error);
+			setDelay(20000).then(async () => {
+				await this.start();
+			});
+		}
+	}
 }

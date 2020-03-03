@@ -2,6 +2,7 @@ import Web3 from "web3";
 import config from "config";
 import { BlockNumber } from "web3-core";
 import { KeyringPair } from "@polkadot/keyring/types";
+import { readFromFile } from "./Utils";
 
 function randomKey(keys: Array<string>) {
     const r = Math.floor((Math.random() * (keys.length - 0.0001)));
@@ -31,5 +32,9 @@ export default class Config {
 
     static startSubmitToDarwiniaDelay = 5000;
 
-    static hasResetGenesisHeader = false;
+    static FINALIZED_BLOCK_NUMBER = "finalizedBlockNumber";
+
+    static HAS_RESET_GENESISHEADER = "hasResetGenesisHeader";
+
+    static hasResetGenesisHeader = !!readFromFile("hasResetGenesisHeader");
 }

@@ -8,7 +8,9 @@
     },
     "license": "MIT",
     "scripts": {
-        "start": "npm run serve",
+        "start": "AUTORUN=1 npm run serve",
+        "start-not-autorun": "npm run serve",
+        "reset": "node dist/ethereum/reset.js",
         "build": "npm run build-sass && npm run build-ts && npm run lint && npm run copy-static-assets",
         "serve": "node dist/server.js",
         "watch-node": "nodemon dist/server.js",

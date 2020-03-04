@@ -7,7 +7,7 @@ export class BlockchainState {
         return BlockchainState.getBlockState().then(([blockInChain]: [number]): number => {
             if(!blockInChain) return;
             Config.EthereumBlockNumberInChain = blockInChain;
-            logger.info("blockInChain: " + Config.EthereumBlockNumberInChain);
+            logger.info("The latest block height[Ethereum network]: " + Config.EthereumBlockNumberInChain);
             return blockInChain;
         });
     }

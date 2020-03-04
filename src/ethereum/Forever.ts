@@ -3,6 +3,9 @@ import { fork, ChildProcess } from "child_process";
 import { join } from "path";
 import { BlockNumber } from "web3-core";
 import logger from "../util/logger";
+import { storageToFile, readFromFile } from "./Utils";
+import Config from "./Config";
+
 import fs from "fs";
 export default class Forever {
 
@@ -10,21 +13,10 @@ export default class Forever {
     private finalizedBlockNumber: BlockNumber;
     private blockTimer: NodeJS.Timeout;
 
-    private killedNumber = 0;
-
     public start() {
         this.startRelay();
         this.forever();
     }
-
-    private storageToFile(number: BlockNumber) {
-        fs.writeFile("finalizedBlockNumber", number.toString(), function (err) {
-            if (err) {
-                return console.error(err);
-            }
-        });
-    }
-
 
     private killForkStarter(forkStarter: ChildProcess) {
         if (forkStarter && !forkStarter.killed) {
@@ -38,27 +30,29 @@ export default class Forever {
         this.forkStarter = fork(join(__dirname, "../ethereum/ForkStarter.js"));
 
         if (!this.finalizedBlockNumber) {
-            this.finalizedBlockNumber = fs.readFileSync("finalizedBlockNumber").toString();
+            this.finalizedBlockNumber = readFromFile(Config.FINALIZED_BLOCK_NUMBER);
         }
         this.forkStarter.send({
-            finalizedBlockNumber: parseInt(this.finalizedBlockNumber.toString()) - (this.killedNumber % 2),
+            finalizedBlockNumber: parseInt(this.finalizedBlockNumber.toString()),
         });
 
-        this.forkStarter.on("message", (code) => {
-            logger.info("finalizedBlockNumber：", code);
+        this.forkStarter.on("message", async (code) => {
+            code && logger.info("Successfully submitted to Eth Relay: ", code);
+            logger.info("");
             if (code && code.finalizedBlockNumber) {
                 if(parseInt(this.finalizedBlockNumber.toString()) + 1 === parseInt(code.finalizedBlockNumber.toString())) {
                     this.finalizedBlockNumber = code.finalizedBlockNumber;
-                    this.storageToFile(this.finalizedBlockNumber);
+                    await storageToFile(Config.FINALIZED_BLOCK_NUMBER, this.finalizedBlockNumber.toString(), () => {
+                        
+                    });
                 }
             }
 
             clearTimeout(this.blockTimer);
 
             this.blockTimer = setTimeout(() => {
-                logger.info("killing");
+                logger.error("The child process is unresponsive for a long time and will be restarted！");
                 this.killForkStarter(this.forkStarter);
-                this.killedNumber = this.killedNumber + 1;
             }, 60000);
         });
     };
@@ -67,11 +61,9 @@ export default class Forever {
         setTimeout(() => {
             
             if (!this.forkStarter || this.forkStarter.killed) {
-                logger.info("killed...");
+                logger.info("Child process has been killed");
                 this.forkStarter = null;
                 this.startRelay();
-            } else {
-                logger.info("online...");
             }
             this.forever();
         }, 120000);

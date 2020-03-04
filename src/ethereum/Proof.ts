@@ -6,7 +6,7 @@ import Web3 from "web3";
 import { BlockNumber } from "web3-core";
 import Config from "./Config";
 import logger from "../util/logger";
-import { setDelay } from "./Utils";
+import { setDelay, storageToFile } from "./Utils";
 import process from "process";
 
 export default class Proof {
@@ -20,8 +20,6 @@ export default class Proof {
         });
 
         if (!block) return [null, null];
-
-        logger.info("Successfully acquired the block number info: " + blockNumber);
 
         // @ts-ignore
         const mixh = bufferToU8a(rlp.encode(block.mixHash));
@@ -58,7 +56,7 @@ export default class Proof {
         const hash = await extrinsic.signAndSend(account, ({ events = [], status }) => {
 
             if (status.isFinalized) {
-                logger.info("Successful transfer of with hash " + status.asFinalized.toHex() + " blockNumber: " + blockNumber);
+                logger.info("Extrinsic hash: " + status.asFinalized.toHex() + ", blockNumber: " + blockNumber);
                 // @ts-ignore
                 events.forEach(({ phase, event: { data, method, section } }) => {
                     logger.info(phase.toString() + " : " + section + "." + method);
@@ -68,24 +66,24 @@ export default class Proof {
                     }
                 });
             } else {
-                logger.info("Status of transfer: " + status.type);
                 if (status.type == "Invalid") {
                     // throw "extrinsic Invalid";
                     // clearTimeout(timeout);
                     // callback && callback("Invalid");
+                    logger.error("Status of extrinsic: " + status.type);
+                } else {
+                    logger.info("Status of extrinsic: " + status.type);
                 }
             }
             
         });
-
-        logger.info(hash);
     }
 
     async checkReceipt(header: string, proof: string, headerHash: string): Promise<any> {
         let ex: any = null;
         const api = Config.polkadotApi;
         if (!api) {
-            logger.error("api is invalid");
+            logger.error("Polkadot api is invalid");
             return "invalid";
         }
         const account = Config.KeyringAccountBob;
@@ -144,13 +142,14 @@ export default class Proof {
             ex = api.tx.ethRelay.relayHeader(header);
         }
         try{
-            await this.createTx(ex, account, nextBlockNumber, (status: string) => {
+            await this.createTx(ex, account, nextBlockNumber, async (status: string) => {
                 if (status == "Invalid") {
                     logger.error("createTx Error" + status);
                     this.scheduleStarter();
                     return;
                 }
                 if (hasResetGenesisHeader) {
+                    await storageToFile(Config.HAS_RESET_GENESISHEADER, `reset with Ethereum block number is ${nextBlockNumber}`);
                     Config.hasResetGenesisHeader = true;
                 }
                 this.storageFinalizedBlockNumber(nextBlockNumber);

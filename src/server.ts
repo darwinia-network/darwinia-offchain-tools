@@ -4,10 +4,15 @@ import app from "./app";
 import Forever from "./ethereum/Forever";
 import logger from "./util/logger";
 
-const forever = new Forever();
+const {
+    AUTORUN,
+} = process.env;
 
+if (AUTORUN) {
+    const forever = new Forever();
+    forever.start();
+}
 
-forever.start();
 /**
  * Error Handler. Provides full stack - remove for production
  */

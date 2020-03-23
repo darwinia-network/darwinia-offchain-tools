@@ -40,3 +40,4 @@ dist/**/*
 # config
 **/*cl.json
 **/*default.json.bak
+**/*blocks.db

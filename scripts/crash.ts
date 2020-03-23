@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import Config from "../src/ethereum/Config";
-import mockContract from "./contract";
+import burn from "./lib/burn";
 
 let sent = 0;
 let receipt = 0;
@@ -33,11 +33,11 @@ async function checkTable() {
 }
 
 // send tx and store resp
-export default async function tx(addr: any, contract: any) {
+export default async function tx(addr: any, contract: any, loop: boolean) {
     sent += 1;
 
     console.log(`[ info ]: sending the ${sent}-th tx...`);
-    console.log(`[ timestamp ]: ${new Date().toUTCString()}`);
+    console.log(`[ timestamp ]: ${new Date().toLocaleString()}`);
 
     await contract.send({
         from: addr,
@@ -53,8 +53,15 @@ export default async function tx(addr: any, contract: any) {
             });
         })
         .catch((e: any) => {
+            console.error("[ error ]: send tx failed.");
             console.error(e);
+            process.exit(1);
         });
+
+    // start loop
+    if (loop) {
+        await tx(addr, contract, true);
+    }
 }
 
 // loop block and tx to sqlite
@@ -66,11 +73,10 @@ async function loop() {
     );
 
     const addr = web3.eth.accounts.wallet[0].address;
-    const contract = mockContract(web3, addr);
+    const contract = burn(web3, addr);
     await checkTable();
 
-    // setInterval(() => tx(addr, contract), 30000);
-    tx(addr, contract).then(() => tx(addr, contract)).catch(() => {
+    tx(addr, contract, true).catch(() => {
         console.error("[ error ]: tx loop got broken.");
         process.exit(1);
     });

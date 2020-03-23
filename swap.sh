@@ -5,21 +5,22 @@ readonly CONFIG="./config/default.json"
 readonly CONFIG_BAK="./config/default.json.bak"
 
 dev() {
-    echo "change to dev mode...";
+    echo "[ info ]: change to dev mode...";
     if [[ ! -e $TARGET ]];
     then
-	echo "error: ${TARGET} doesn't exist"
+	echo "[ error ]: target config doesn't exist"
+	help
 	return;
     fi
        
-    mv $CONFIG $CONFIG_BAK
+    cp $CONFIG $CONFIG_BAK
     cp $TARGET $CONFIG
 
     echo 'ok!'
 }
 
 pub() {
-    echo "change to dev mode...";
+    echo "[ info ]: change to public mode...";
     if [[ ! -e $CONFIG_BAK ]];
     then
 	echo "error: config backup doesn't exist"
@@ -27,13 +28,13 @@ pub() {
 	return;
     fi
     
-    mv ./config/default.json.bak ./config/default.json
+    cp ./config/default.json.bak ./config/default.json
 
     echo 'ok!'
 }
 
 reset() {
-    echo 'reset config? [y/n]'
+    echo '[ question ] reset config? [y/n]'
     read ans
     
     if [[ $ans != 'y' ]];

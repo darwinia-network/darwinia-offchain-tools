@@ -38,5 +38,5 @@ Thumbs.db
 dist/**/*
 
 # config
-./config/cl.json
-./config/default.json.bak
+**/*cl.json
+**/*default.json.bak

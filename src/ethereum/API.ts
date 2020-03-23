@@ -233,7 +233,11 @@ export default class API {
 		if (config.get("KEYRING") != "") {
 			account = keypair.addFromMnemonic(config.get("KEYRING"));
 		} else {
-			account = testKeyring().alice;
+			if (config.get("SEED")) {
+				account = keypair.addFromMnemonic(config.get("KEYRING"));
+			} else {
+				account = testKeyring().alice;
+			}
 		}
 		Config.KeyringAccount = account;
 		Config.KeyringAccountBob = testKeyring().bob;

@@ -714,6 +714,13 @@
   resolved "https://registry.npm.taobao.org/@types/json-schema/download/@types/json-schema-7.0.4.tgz#38fd73ddfd9b55abb1e1b2ed578cb55bd7b7d339"
   integrity sha1-OP1z3f2bVaux4bLtV4y1W9e30zk=
 
+"@types/knex@^0.16.1":
+  version "0.16.1"
+  resolved "https://registry.npm.taobao.org/@types/knex/download/@types/knex-0.16.1.tgz#619678407265c675463c563ed38323461a49515d"
+  integrity sha1-YZZ4QHJlxnVGPFY+04MjRhpJUV0=
+  dependencies:
+    knex "*"
+
 "@types/lodash@^4.14.141":
   version "4.14.149"
   resolved "https://registry.npm.taobao.org/@types/lodash/download/@types/lodash-4.14.149.tgz?cache=0&sync_timestamp=1574120085454&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Flodash%2Fdownload%2F%40types%2Flodash-4.14.149.tgz#1342d63d948c6062838fbf961012f74d4e638440"
@@ -5039,7 +5046,7 @@ kleur@^3.0.3:
   resolved "https://registry.npm.taobao.org/kleur/download/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha1-p5yezIbuHOP6YgbRIWxQHxR/wH4=
 
-knex@^0.20.13:
+knex@*, knex@^0.20.13:
   version "0.20.13"
   resolved "https://registry.npm.taobao.org/knex/download/knex-0.20.13.tgz#056c310d963f7efce1b3c7397576add1323f1146"
   integrity sha1-BWwxDZY/fvzhs8c5dXat0TI/EUY=

@@ -2,41 +2,64 @@ import Web3 from "web3";
 import Config from "../src/ethereum/Config";
 import mockContract from "./contract";
 
+let sent = 0;
+let receipt = 0;
+
 // init sqlite3 to save txs
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const knex = require("knex")({
     client: "sqlite3",
     connection: {
         filename: "./blocks.db"
-    }
+    },
+    useNullAsDefault: true
 });
 
 // check if table exists
 async function checkTable() {
-    let exists = await knex.schema.hasTable("blocks");
+    const exists = await knex.schema.hasTable("blocks");
     if (!exists) {
         knex.schema.createTable("blocks", (table: any) => {
             table.integer("height");
-            table.integer("tx");
-        });
+            table.string("tx");
+        }).catch((e: any) => console.error);
     }
+
+    await knex("blocks").count("tx").then((r: any) => {
+        sent = r[0]["count(`tx`)"];
+        receipt = r[0]["count(`tx`)"];
+        console.log(`[ info ]: now we have sent ${sent} txes, received ${receipt} txes`);
+    });
 }
 
 // send tx and store resp
 export default async function tx(addr: any, contract: any) {
-    contract.send({
+    sent += 1;
+
+    console.log(`[ info ]: sending the ${sent}-th tx...`);
+    console.log(`[ timestamp ]: ${new Date().toUTCString()}`);
+
+    await contract.send({
         from: addr,
         gas: 500000,
     })
         .on("receipt", (r: any) => {
-            console.log(r);
+            receipt += 1;
+            console.log(`[ info ]: receiving the ${receipt}-th tx`);
+            console.log(`[ receipt ]: block(${r.blockNumber}) tx(${r.transactionHash})`);
+            knex("blocks").insert({ height: r.blockNumber, tx: r.transactionHash }).catch(() => {
+                console.error("[ error ]: insert block info to db failed.");
+                process.exit(1);
+            });
         })
         .catch((e: any) => {
             console.error(e);
-        })
+        });
 }
 
 // loop block and tx to sqlite
 async function loop() {
+    console.log("[ info ]: start tx loop...");
     const web3 = new Web3(new Web3.providers.HttpProvider(Config.network as string));
     web3.eth.accounts.wallet.add(
         "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
@@ -44,10 +67,13 @@ async function loop() {
 
     const addr = web3.eth.accounts.wallet[0].address;
     const contract = mockContract(web3, addr);
-
     await checkTable();
 
-    tx(addr, contract);
+    // setInterval(() => tx(addr, contract), 30000);
+    tx(addr, contract).then(() => tx(addr, contract)).catch(() => {
+        console.error("[ error ]: tx loop got broken.");
+        process.exit(1);
+    });
 }
 
 /** Account

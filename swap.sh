@@ -2,7 +2,7 @@
 
 readonly TARGET=$2
 readonly CONFIG="./config/default.json"
-readonly CONFIG_BAK="./config/default.json.bak"
+readonly CONFIG_BAK="./config/.default.json"
 
 dev() {
     echo "[ info ]: change to dev mode...";

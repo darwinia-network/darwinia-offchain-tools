@@ -38,6 +38,6 @@ Thumbs.db
 dist/**/*
 
 # config
+**/*.defalut.json
 **/*cl.json
-**/*default.json.bak
 **/*blocks.db

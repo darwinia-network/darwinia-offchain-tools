@@ -7,7 +7,7 @@ async function main(): Promise<void> {
         "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
     );
 
-    let r = await web3.eth.getUncle(7575768, 0);
+    const r = await web3.eth.getUncle(7575768, 0);
     console.log(JSON.stringify(r, null, 2));
 }
 

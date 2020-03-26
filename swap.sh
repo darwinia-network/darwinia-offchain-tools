@@ -28,7 +28,7 @@ pub() {
 	return;
     fi
     
-    cp ./config/default.json.bak ./config/default.json
+    cp $CONFIG_BAK $CONFIG
 
     echo 'ok!'
 }

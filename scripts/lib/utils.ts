@@ -19,7 +19,7 @@ export function log(s: string, logger?: Logger): void {
             console.log(`${l} ${chalk.green("success")} ${r} ${s}`);
             break;
         default:
-            console.log(`${l} ${chalk.cyan("info")} ${r} ${s}`);
+            console.log(chalk.dim(`[ ${chalk.cyan.dim("info")} ] ${s}`));
             break;
     }
 }

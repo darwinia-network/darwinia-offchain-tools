@@ -4,6 +4,7 @@ import { log, Logger } from "./lib/utils";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 
 const chalk = require("chalk");
+const prompts = require("prompts");
 const readline = require("readline");
 const customizeType = require("./types.json");
 const { headers, receipt } = require("./headers.json");
@@ -22,7 +23,8 @@ class Relay {
         const hash = await ex.signAndSend(
             this.account
         ).catch(() => log("reset genesis block failed!", Logger.Error));
-        log(`reset genesis block succeed! the tx hash is ${hash} `);
+        log(`reset header succeed! 📦`, Logger.Success);
+        log(`the tx hash of reset is ${hash}`);
     }
 
     /** step-2
@@ -36,7 +38,8 @@ class Relay {
         const hash = await ex.signAndSend(
             this.account
         ).catch(() => log("relay header failed!", Logger.Error));
-        log(`relay new header succeed! the tx hash is ${hash}`);
+        log(`relay header succeed! 🎉`, Logger.Success);
+        log(`the tx hash of relay is ${hash}`);
     }
 
     /** step-3
@@ -45,16 +48,12 @@ class Relay {
      *
      */
     async redeem() {
-        await this.getBalance();
-
-        console.log(receipt);
-        const ex = this.api.tx.ethBacking.redeem(receipt);
+        const ex = this.api.tx.ethBacking.redeem(customizeType.Ring);
         const hash = await ex.signAndSend(
             this.account
         ).catch(() => log("redeem receipt failed!", Logger.Error));
-        log(`redeem receipt succeed! the tx hash is ${hash}`);
-
-        await this.getBalance();
+        log(`redeem receipt succeed! 🍺`, Logger.Success);
+        log(`the tx hash of redeem is ${hash}`);
     }
 
     /** utils-1
@@ -66,7 +65,7 @@ class Relay {
         const account = await this.api.query.system.account(this.account.address).catch(
             () => log("relay header failed!", Logger.Error)
         );
-        log(`${account.toString()}`);
+        log(`now we own ${account.data.free_ring} RING 💰`, Logger.Success);
     }
 
     /**
@@ -93,19 +92,49 @@ class Relay {
 
 // main
 (async function() {
+    const res = await prompts({
+        type: 'select',
+        name: 'value',
+        message: 'Test which process?',
+        choices: [
+            { title: 'All', description: 'Test all process, including ["genesis header", "relay header" and "redeem"]', value: 0 },
+            { title: 'Get Balances', description: 'Get balances in current account', value: 1 },
+            { title: 'Genesis header', description: 'init or reset genesis header', value: 2 },
+            { title: 'Relay header', description: "Relay new header to darwinia, Note: this will panic if you haven't init header", value: 3 },
+            { title: 'Redeem', description: "redeem balances from darwinia", value: 4 },
+        ],
+        initial: 0,
+    }, {
+        onCanceled: () => process.exit(0),
+    });
+
     let relay = new Relay();
     await relay.init();
 
-    // step-1: reset
-    await relay.reset();
-
-    // step-2: relay
-    await relay.relay();
-
-    // step-3: reedem
-    // await relay.redeem();
+    switch (res.value) {
+        case 0:
+            await relay.reset();
+            await relay.relay();
+            await relay.getBalance();
+            await relay.redeem();
+            break;
+        case 1:
+            await relay.getBalance();
+            break;
+        case 2:
+            await relay.reset();
+            break;
+        case 3:
+            await relay.relay();
+            break;
+        case 4:
+            await relay.redeem();
+            break;
+        default:
+            process.exit(0);
+    }
 
     // end process
-    log("congratulation! the relay process has just launched the Mars 🚀", Logger.Success);
+    log("congratulation! the relay process has just launched at the Mars 🚀", Logger.Success);
     process.exit(0);
 })();

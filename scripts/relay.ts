@@ -1,17 +1,31 @@
 /* eslint-disable */
 import Keyring from "@polkadot/keyring";
-import { log, Logger, parseHeader } from "./lib/utils";
+import { log, Logger, parseHeader, st } from "./lib/utils";
 import { ApiPromise, WsProvider } from "@polkadot/api";
+import { setInterval } from "timers";
 
-const chalk = require("chalk");
 const prompts = require("prompts");
-const readline = require("readline");
 const customizeType = require("./types.json");
 const { headers, receipt } = require("./headers.json");
+
+enum Event {
+    GetBalance,
+    Reset,
+    Relay,
+    Redeem,
+}
+
+interface Queue {
+    active: boolean;
+    events: Event[]; // event queue
+    success: boolean; // if succeed
+    finished: boolean;  // if process finished
+}
 
 class Relay {
     account: any;
     api: any;
+    queue: Queue;
 
     /** step-1
      *
@@ -22,34 +36,7 @@ class Relay {
         const ex = this.api.tx.ethRelay.resetGenesisHeader(
             parseHeader(headers[0]), headers[0].totalDifficulty
         );
-        const hash = await ex.signAndSend(
-            this.account, {}, (r: any) => {
-                // console.log(r);
-                // 
-                // let status = r.status;
-                // console.log('Transaction status:', status.type);
-                // 
-                // if (status.isInBlock) {
-                //     console.log('Included at block hash', status.asInBlock.toHex());
-                //     if (r.events) {
-                //         r.events.forEach((r: any) => {
-                //             console.log(
-                //                 '\t',
-                //                 r.phase.toString(),
-                //                 `: ${r.event.section}.${r.event.method}`,
-                //                 r.event.data.toString()
-                //             );
-                //         });
-                //     }
-                // } else if (status.isFinalized) {
-                //     console.log('Finalized block hash', status.asFinalized.toHex());
-                //     return;
-                // }
-            }
-        ).catch(() => log("reset genesis block failed!", Logger.Error));
-
-        log(`reset header succeed! 📦`, Logger.Success);
-        log(`the tx hash of reset is ${hash}`);
+        await st.call(this, ex, "reset genesis block failed!");
     }
 
     /** step-2
@@ -60,13 +47,7 @@ class Relay {
      */
     async relay() {
         const ex = this.api.tx.ethRelay.relayHeader(parseHeader(headers[1]));
-        const hash = await ex.signAndSend(
-            this.account, {}, (r: any) => {
-                console.log(r);
-            }
-        ).catch(() => log("relay header failed!", Logger.Error));
-        log(`relay header succeed! 🎉`, Logger.Success);
-        log(`the tx hash of relay is ${hash}`);
+        await st.call(this, ex, "relay header failed!");
     }
 
     /** step-3
@@ -76,15 +57,10 @@ class Relay {
      */
     async redeem() {
         const ex = this.api.tx.ethBacking.redeem({ "Ring": receipt });
-        const hash = await ex.signAndSend(
-            this.account
-        ).catch(() => log("redeem receipt failed!", Logger.Error));
-
-        log(`redeem receipt succeed! 🍺`, Logger.Success);
-        log(`the tx hash of redeem is ${hash}`);
+        await st.call(this, ex, "redeem receipt failed!");
     }
 
-    /** utils-1
+    /** bonus-1
      *
      *  get balance
      *
@@ -94,6 +70,105 @@ class Relay {
             () => log("relay header failed!", Logger.Error)
         );
         log(`now we own ${account.data.free_ring} RING 💰`, Logger.Success);
+
+        this.queue.active = false;
+        this.queue.finished = true;
+    }
+
+    /** bonus-2 
+     *
+     * listener
+     *
+     */
+    async listen(strategy: number) {
+        await log("init darwinia account 🧙‍♂️", Logger.Success);
+
+        switch (strategy) {
+            case 1:
+                this.queue.events.push(Event.GetBalance);
+                break;
+            case 2:
+                this.queue.events.push(Event.Reset);
+                break;
+            case 3:
+                this.queue.events.push(Event.Relay);
+                break;
+            case 4:
+                this.queue.events.push(Event.Redeem);
+                break;
+            case 0:
+                this.queue.events = [
+                    Event.GetBalance,
+                    Event.Reset,
+                    Event.Relay,
+                    Event.Redeem,
+                ];
+                break;
+            default:
+                process.exit(0);
+        }
+
+
+        let interval = setInterval(() => {
+            //  return if queue is active
+            if (this.queue.active) {
+                return;
+            }
+
+            // move to next event if current event finished
+            if (this.queue.finished) {
+                switch (this.queue.events[0]) {
+                    case Event.Reset:
+                        log(`reset header succeed! 📦`, Logger.Success);
+                        break;
+                    case Event.Relay:
+                        log(`relay header succeed! 🎉`, Logger.Success);
+                        break;
+                    case Event.Redeem:
+                        log(`redeem receipt succeed! 🍺`, Logger.Success);
+                        break;
+                    default:
+                        break;
+                }
+
+                this.queue.active = true;
+                this.queue.finished = false;
+                this.queue.events = this.queue.events.slice(1);
+            }
+
+            // exit process if are events are finished
+            if (this.queue.events.length === 0) {
+                if (this.queue.success) {
+                    clearInterval(interval);
+                    log(
+                        "congratulation! the relay process has just launched at the Mars 🚀",
+                        Logger.Success
+                    );
+                    process.exit(0);
+                } else {
+                    process.exit(1);
+                }
+            }
+
+            // exec event
+            this.queue.active = true;
+            switch (this.queue.events[0]) {
+                case Event.GetBalance:
+                    this.getBalance();
+                    break;
+                case Event.Reset:
+                    this.reset();
+                    break;
+                case Event.Relay:
+                    this.relay();
+                    break;
+                case Event.Redeem:
+                    this.redeem();
+                    break;
+                default:
+                    break;
+            }
+        }, 500);
     }
 
     /**
@@ -109,22 +184,21 @@ class Relay {
         });
 
         this.account = new Keyring({ type: "sr25519" }).addFromUri(
-            "0xb5de7ca0500e35394629d4ae4e0396f340f864042299713a07af14bcbc4d3dd0"
-            // "0x19f039ed1e00bab7b6ae9f1f4d8b5c2c4afbd1eed3533d1cd6a0cd8395c2aaca"
+            "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a" // dev //Alice
         );
 
-        // readline.cursorTo(process.stdout, 0, 1);
-        // readline.clearScreenDown(process.stdout);
-
-        log("init darwinia account 🧙‍♂️");
+        this.queue = {
+            active: false,
+            events: [],
+            success: true,
+            finished: false,
+        }
     }
 }
 
 // main
 (async function() {
-    let relay = new Relay();
-    await relay.init();
-
+    // prompts
     const res = await prompts({
         type: 'select',
         name: 'value',
@@ -141,36 +215,8 @@ class Relay {
         onCanceled: () => process.exit(0),
     });
 
-    switch (res.value) {
-        case 0:
-            await relay.reset();
-            await relay.relay();
-            await relay.getBalance();
+    let relay = new Relay();
+    await relay.init();
 
-            log(`prepare to redeem...`);
-            await new Promise(
-                () => setTimeout(
-                    () => relay.redeem(), 3000
-                )
-            );
-            break;
-        case 1:
-            await relay.getBalance();
-            break;
-        case 2:
-            await relay.reset();
-            break;
-        case 3:
-            await relay.relay();
-            break;
-        case 4:
-            await relay.redeem();
-            break;
-        default:
-            process.exit(0);
-    }
-
-    // end process
-    // log("congratulation! the relay process has just launched at the Mars 🚀", Logger.Success);
-    // process.exit(0);
+    relay.listen(res.value);
 })();

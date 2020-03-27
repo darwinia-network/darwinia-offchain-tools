@@ -1,7 +1,7 @@
 {
-    "WEB3_RPC_SERVER": "https://ropsten.infura.io/v3/",
-    "INFURA_KEYS": ["48751b4dbbc84894a1fa3197b6446ec2"],
-    "DARWINIA_RPC_SERVER": "ws://0.0.0.0:9944",
+    "WEB3_RPC_SERVER": "",
+    "INFURA_KEYS": [],
+    "DARWINIA_RPC_SERVER": "",
     "KEYRING": "",
-    "SEED": "0xb5de7ca0500e35394629d4ae4e0396f340f864042299713a07af14bcbc4d3dd0"
+    "SEED": ""
 }

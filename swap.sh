@@ -25,6 +25,7 @@ pub() {
     then
 	echo "error: config backup doesn't exist"
 	reset
+	exit 0
     fi
     
     cp $CONFIG_BAK $CONFIG

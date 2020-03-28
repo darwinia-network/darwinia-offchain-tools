@@ -5,8 +5,8 @@ import { ApiPromise, WsProvider } from "@polkadot/api";
 import { setInterval } from "timers";
 
 const prompts = require("prompts");
-const customizeType = require("./types.json");
-const { headers, receipt } = require("./headers.json");
+const customizeType = require("./lib/types.json");
+const { headers, receipt } = require("./lib/headers.json");
 
 // darwinia backend addr
 const HOLDER = "0xd7b504ddbe25a05647312daa8d0bbbafba360686241b7e193ca90f9b01f95faa";
@@ -69,7 +69,7 @@ class Relay {
      *  transfer balance
      *
      */
-    async transfer(addr = HOLDER, amount = 9999) {
+    async transfer(addr = HOLDER, amount = 9999999999999) {
         const ex = this.api.tx.balances.transfer(addr, amount);
         st.call(this, ex, "transfer failed!");
     }
@@ -109,12 +109,12 @@ class Relay {
                 this.queue.events.push(Event.Redeem);
                 break;
             case 0:
-                this.queue.events = [
+                this.queue.events = this.queue.events.concat([
                     Event.GetBalance,
                     Event.Reset,
                     Event.Relay,
                     Event.Redeem,
-                ];
+                ]);
                 break;
             default:
                 process.exit(0);

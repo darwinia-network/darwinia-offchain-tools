@@ -27,7 +27,8 @@
     "serve-debug": "nodemon --inspect dist/server.js",
     "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\"",
     "swap": "./swap.sh",
-    "swap:dev": "./swap.sh dev config/.default.json"
+    "swap:dev": "./swap.sh dev config/.default.json",
+    "proof": "ts-node ./scripts/relay.ts"
   },
   "dependencies": {
     "@polkadot/api": "^1.8.0-beta.2",

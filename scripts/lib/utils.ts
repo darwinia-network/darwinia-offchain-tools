@@ -15,7 +15,7 @@ export function st(ex: any, err: string) {
     ex.signAndSend(
         this.account, {}, (r: any) => {
             try {
-                log.call(this.queue, r, Logger.Event);
+                log.call(this, r, Logger.Event);
             } catch (_) {
                 log(err, Logger.Error);
             }
@@ -41,7 +41,7 @@ export function log(s: any, logger?: Logger) {
             console.log(`${l + chalk.green("success") + r} ${s}`);
             break;
         default:
-            console.log(chalk.dim(`[ ${chalk.cyan.dim("info")} ] ${s}`));
+            console.log(chalk.dim(`[ ${chalk.cyan.dim("info")} ]: ${s}`));
             break;
     }
 }
@@ -52,7 +52,7 @@ function parseRes(r: any) {
 
     if (status.isInBlock) {
         log(`Included at block hash: ${status.asInBlock.toHex()}`);
-        r.events && r.events.forEach((r: any) => {
+        r.events && r.events.forEach(async (r: any) => {
             log(
                 "\t" +
                 r.phase.toString() +
@@ -60,15 +60,18 @@ function parseRes(r: any) {
                 r.event.data.toString()
             );
 
-            //@hack
-            if (r.event.method.toLowerCase().indexOf("failed") > -1) {
-                throw "ex failed";
+            // error
+            if (r.event.data[0].isModule) {
+                let doc = await this.api.registry.findMetaError(r.event.data[0].asModule);
+                let err = `${doc.name}.${doc.section} - ${doc.documentation.join(" ")}`
+                log(err, Logger.Error);
+                process.exit(1);
             }
         });
     } else if (status.isFinalized) {
         log(`Finalized block hash: ${status.asFinalized.toHex()}`);
-        this.active = false;
-        this.finished = true;
+        this.queue.active = false;
+        this.queue.finished = true;
     }
 }
 

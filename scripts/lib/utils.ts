@@ -10,7 +10,7 @@ export enum Logger {
     Success,
 }
 
-export async function st(ex: any, err: string) {
+export function st(ex: any, err: string) {
     ex.signAndSend(
         this.account, {}, (r: any) => {
             try {
@@ -58,6 +58,7 @@ function parseRes(r: any) {
 
             //@hack
             if (r.event.method.toLowerCase().indexOf("failed") > -1) {
+                console.log(r.event.data[0].raw.error);
                 throw "ex failed";
             }
         });

@@ -8,11 +8,15 @@ const prompts = require("prompts");
 const customizeType = require("./types.json");
 const { headers, receipt } = require("./headers.json");
 
+// darwinia backend addr
+const HOLDER = "0xd7b504ddbe25a05647312daa8d0bbbafba360686241b7e193ca90f9b01f95faa";
+
 enum Event {
     GetBalance,
     Reset,
     Relay,
     Redeem,
+    Transfer,
 }
 
 interface Queue {
@@ -36,7 +40,7 @@ class Relay {
         const ex = this.api.tx.ethRelay.resetGenesisHeader(
             parseHeader(headers[0]), headers[0].totalDifficulty
         );
-        await st.call(this, ex, "reset genesis block failed!");
+        st.call(this, ex, "reset genesis block failed!");
     }
 
     /** step-2
@@ -47,7 +51,7 @@ class Relay {
      */
     async relay() {
         const ex = this.api.tx.ethRelay.relayHeader(parseHeader(headers[1]));
-        await st.call(this, ex, "relay header failed!");
+        st.call(this, ex, "relay header failed!");
     }
 
     /** step-3
@@ -57,7 +61,17 @@ class Relay {
      */
     async redeem() {
         const ex = this.api.tx.ethBacking.redeem({ "Ring": receipt });
-        await st.call(this, ex, "redeem receipt failed!");
+        st.call(this, ex, "redeem receipt failed!");
+    }
+
+    /** bonus-0
+     *
+     *  transfer balance
+     *
+     */
+    async transfer(addr = HOLDER, amount = 9999) {
+        const ex = this.api.tx.balances.transfer(addr, amount);
+        st.call(this, ex, "transfer failed!");
     }
 
     /** bonus-1
@@ -67,7 +81,7 @@ class Relay {
      */
     async getBalance() {
         const account = await this.api.query.system.account(this.account.address).catch(
-            () => log("relay header failed!", Logger.Error)
+            () => log("get balance failed!", Logger.Error)
         );
         log(`now we own ${account.data.free_ring} RING 💰`, Logger.Success);
 
@@ -80,9 +94,7 @@ class Relay {
      * listener
      *
      */
-    async listen(strategy: number) {
-        await log("init darwinia account 🧙‍♂️", Logger.Success);
-
+    listen(strategy: number) {
         switch (strategy) {
             case 1:
                 this.queue.events.push(Event.GetBalance);
@@ -127,6 +139,9 @@ class Relay {
                     case Event.Redeem:
                         log(`redeem receipt succeed! 🍺`, Logger.Success);
                         break;
+                    case Event.Transfer:
+                        log("transfer 9999 RING to the contract holder");
+                        break;
                     default:
                         break;
                 }
@@ -165,40 +180,51 @@ class Relay {
                 case Event.Redeem:
                     this.redeem();
                     break;
+                case Event.Transfer:
+                    this.transfer();
+                    break;
                 default:
                     break;
             }
         }, 500);
     }
 
-    /**
+    /** init Relay account
      *
-     * init Relay account
+     * @sudo: root account that can reset header
      *
      */
-    async init() {
+    async init(
+        sudo = "//Alice",
+        addr = "ws://0.0.0.0:9944",
+    ) {
         this.api = await ApiPromise.create({
             types: customizeType,
-            provider: new WsProvider("ws://0.0.0.0:9944"),
-            // provider: new WsProvider("ws://35.234.33.88:9944"),
+            provider: new WsProvider(addr),
         });
 
-        this.account = new Keyring({ type: "sr25519" }).addFromUri(
-            "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a" // dev //Alice
-        );
+        // add seed
+        this.account = new Keyring({ type: "sr25519" }).addFromUri(sudo);
+        log("init darwinia account 🧙‍♂️", Logger.Success);
 
+        // queue data
         this.queue = {
             active: false,
             events: [],
             success: true,
             finished: false,
         }
+
+        // transfer to the contract holder
+        let holder = await this.api.query.system.account(HOLDER);
+        if (holder.data.free_ring.toString() === "0") {
+            this.queue.events = [Event.GetBalance, Event.Transfer];
+        }
     }
 }
 
 // main
 (async function() {
-    // prompts
     const res = await prompts({
         type: 'select',
         name: 'value',

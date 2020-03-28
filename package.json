@@ -27,7 +27,7 @@
     "serve-debug": "nodemon --inspect dist/server.js",
     "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\"",
     "swap": "./swap.sh",
-    "swap:cl": "./swap.sh dev config/cl.json"
+    "swap:dev": "./swap.sh dev config/.default.json"
   },
   "dependencies": {
     "@polkadot/api": "^1.8.0-beta.2",
@@ -112,8 +112,9 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint",
-      "pre-push": "./swap.sh pub"
+      "pre-commit": "./swap.sh pub && git add . && npm run lint",
+      "pre-commit": "./swap.sh dev ./config/.default.json",
+      "pre-push": "npm run lint"
     }
   }
 }

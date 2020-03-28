@@ -113,7 +113,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "./swap.sh pub && git add . && npm run lint",
-      "pre-commit": "./swap.sh dev ./config/.default.json",
+      "post-commit": "./swap.sh dev ./config/.default.json",
       "pre-push": "npm run lint"
     }
   }

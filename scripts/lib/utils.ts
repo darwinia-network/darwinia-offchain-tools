@@ -6,6 +6,7 @@ import { rlp } from "ethereumjs-util";
 export enum Logger {
     Error,
     Event,
+    EventMsg,
     Info,
     Success,
 }
@@ -33,6 +34,9 @@ export function log(s: any, logger?: Logger) {
         case Logger.Event:
             parseRes.call(this, s);
             break;
+        case Logger.EventMsg:
+            console.log(`${l + chalk.magenta("event") + r} ${s}`);
+            break;
         case Logger.Success:
             console.log(`${l + chalk.green("success") + r} ${s}`);
             break;
@@ -58,7 +62,6 @@ function parseRes(r: any) {
 
             //@hack
             if (r.event.method.toLowerCase().indexOf("failed") > -1) {
-                console.log(r.event.data[0].raw.error);
                 throw "ex failed";
             }
         });

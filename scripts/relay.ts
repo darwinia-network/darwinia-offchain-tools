@@ -169,18 +169,23 @@ class Relay {
             this.queue.active = true;
             switch (this.queue.events[0]) {
                 case Event.GetBalance:
+                    log("get balance", Logger.EventMsg);
                     this.getBalance();
                     break;
                 case Event.Reset:
+                    log("reset genesis header", Logger.EventMsg);
                     this.reset();
                     break;
                 case Event.Relay:
+                    log("relay header", Logger.EventMsg);
                     this.relay();
                     break;
                 case Event.Redeem:
+                    log("redeem", Logger.EventMsg);
                     this.redeem();
                     break;
                 case Event.Transfer:
+                    log("transfer", Logger.EventMsg);
                     this.transfer();
                     break;
                 default:

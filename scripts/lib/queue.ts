@@ -74,7 +74,7 @@ export async function queue(strategy: number) {
             process.exit(0);
     }
 
-    let interval = setInterval(() => {
+    const interval = setInterval(() => {
         //  return if queue is active
         if (this.queue.active) {
             return;
@@ -84,7 +84,7 @@ export async function queue(strategy: number) {
         if (this.queue.finished) {
             switch (this.queue.events[0]) {
                 case Event.SendTx:
-                    log(`ethereum has received our tx!`);
+                    log("ethereum has received our tx!");
                     break;
                 case Event.GetReceipt:
                     log(`\t${JSON.stringify(this.headers.receipt)}`);
@@ -96,13 +96,13 @@ export async function queue(strategy: number) {
                     log(`\t${JSON.stringify(this.headers.genesis)}`);
                     break;
                 case Event.Reset:
-                    log(`reset header succeed! 📦`, Logger.Success);
+                    log("reset header succeed! 📦", Logger.Success);
                     break;
                 case Event.Relay:
-                    log(`relay header succeed! 🎉`, Logger.Success);
+                    log("relay header succeed! 🎉", Logger.Success);
                     break;
                 case Event.Redeem:
-                    log(`redeem receipt succeed! 🍺`, Logger.Success);
+                    log("redeem receipt succeed! 🍺", Logger.Success);
                     break;
                 case Event.Transfer:
                     log("transfered 9999 RING to the contract holder");

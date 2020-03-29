@@ -52,7 +52,7 @@ const config: Config = {
     // static: the default headers are 7575765 and 7575766 in ropsten
     // testnet, our redeem tx is received by the 7575766 block.
     // 
-    // dynamic: the dynamic choice means, we just send new txes, rely
+    // dynamic: the dynamic choice means, we just send new txes, relay
     // them, and do the test stuffs, not recommend, if your network is
     // not good.
     dynamic: false,
@@ -100,7 +100,7 @@ $ ts-node ./scripts/relay.ts
 
 #### Errors
 
-We can just run `Relay header` for once, because once we relayed the test `relay header` to `darwinia`, we can not relay it again, unless we clean all of our chain data, and restart our `darwinia node` from block 0.
+In static mode, we can just run `Relay header` for once, because once we relayed the test `relay header` to `darwinia`, we can not relay it again, unless we clean all of our chain data, and restart our `darwinia node` from block 0.
 
 ### chapter.2.Send redeem requests to ropsten.
 

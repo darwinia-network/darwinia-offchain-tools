@@ -17,7 +17,7 @@ const config: Config = {
     // static: the default headers are 7575765 and 7575766 in ropsten
     // testnet, our redeem tx is received by the 7575766 block.
     // 
-    // dynamic: the dynamic choice means, we just send new txes, rely
+    // dynamic: the dynamic choice means, we just send new txes, relay
     // them, and do the test stuffs, not recommend, if your network is
     // not good.
     dynamic: false,
@@ -47,4 +47,4 @@ const config: Config = {
 export {
     Config,
     config,
-}
+};

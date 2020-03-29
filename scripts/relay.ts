@@ -1,44 +1,53 @@
 /* eslint-disable */
+import burn from "./lib/burn";
 import Keyring from "@polkadot/keyring";
+import Web3 from "web3";
+import { Config, config } from "./cfg";
 import { log, Logger, parseHeader, st } from "./lib/utils";
+import { Event, Queue, Headers, queue } from "./lib/queue";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { setInterval } from "timers";
 
+const https = require("https");
 const prompts = require("prompts");
 const customizeType = require("./lib/types.json");
 const { headers, receipt } = require("./lib/headers.json");
 
-// darwinia backend addr
-const HOLDER = "0xd7b504ddbe25a05647312daa8d0bbbafba360686241b7e193ca90f9b01f95faa";
-
-enum Event {
-    GetBalance,
-    Reset,
-    Relay,
-    Redeem,
-    Transfer,
-}
-
-interface Queue {
-    active: boolean;
-    events: Event[]; // event queue
-    success: boolean; // if succeed
-    finished: boolean;  // if process finished
-}
-
 class Relay {
     account: any;
     api: any;
+    config: Config;
     queue: Queue;
+    web3: any;
+    headers: Headers;
+
+    /** constructor
+     *
+     * construct relay with config
+     *
+     **/
+    constructor(config: Config) {
+        this.config = config;
+
+        // use default headers 
+        if (!this.config.dynamic) {
+            this.headers = {
+                genesis: headers[0],
+                container: headers[1],
+                receipt: receipt,
+                currentHeight: 757576,
+                receiptHash: "",
+            }
+        }
+    }
 
     /** step-1
      *
      * reset server
      *
-     */
-    async reset() {
+     **/
+    reset() {
         const ex = this.api.tx.ethRelay.resetGenesisHeader(
-            parseHeader(headers[0]), headers[0].totalDifficulty
+            parseHeader(this.headers.genesis), this.headers.genesis.totalDifficulty
         );
         st.call(this, ex, "reset genesis block failed!");
     }
@@ -48,9 +57,10 @@ class Relay {
      *  relay a new header that contains an exists darwinia tx.
      *
      *  Note: If you want to test sending tx to Ethereum, please checkout "./crash.ts".
-     */
-    async relay() {
-        const ex = this.api.tx.ethRelay.relayHeader(parseHeader(headers[1]));
+     *
+     **/
+    relay() {
+        const ex = this.api.tx.ethRelay.relayHeader(parseHeader(this.headers.container));
         st.call(this, ex, "relay header failed!");
     }
 
@@ -58,9 +68,9 @@ class Relay {
      *  
      * redeem our ring 
      *
-     */
-    async redeem() {
-        const ex = this.api.tx.ethBacking.redeem({ "Ring": receipt });
+     **/
+    redeem() {
+        const ex = this.api.tx.ethBacking.redeem({ "Ring": this.headers.receipt });
         st.call(this, ex, "redeem receipt failed!");
     }
 
@@ -68,9 +78,9 @@ class Relay {
      *
      *  transfer balance
      *
-     */
-    async transfer(addr = HOLDER, amount = 9999999999999) {
-        const ex = this.api.tx.balances.transfer(addr, amount);
+     **/
+    transfer() {
+        const ex = this.api.tx.balances.transfer(this.config.holder, 9999999999999);
         st.call(this, ex, "transfer failed!");
     }
 
@@ -78,7 +88,7 @@ class Relay {
      *
      *  get balance
      *
-     */
+     **/
     async getBalance() {
         const account = await this.api.query.system.account(this.account.address).catch(
             () => log("get balance failed!", Logger.Error)
@@ -89,127 +99,119 @@ class Relay {
         this.queue.finished = true;
     }
 
-    /** bonus-2 
+    /** web3-1
+     * 
+     * burn, send tx
      *
-     * listener
+     **/
+    sendTx() {
+        const addr = this.web3.eth.accounts.wallet[0].address;
+        const contract = burn(this.web3, addr);
+
+        log("this might take a long time, you can walk around and take a cup of coffee...");
+        log("do not try to use proxy if you are testing a local darwinia node : )");
+
+        contract.send({
+            from: addr,
+            gas: 500000,
+        }).on("transactionHash", (hash: string) => {
+            log(`our tx hash is ${hash}`);
+        }).on("receipt", (r: any) => {
+            this.headers.receiptHash = r.transactionHash;
+            this.queue.finished = true;
+            this.queue.active = false;
+        }).on("error", () => {
+            log([
+                "send redeem request to eth contract failed, please make sure ",
+                "you have enough ether and ring in your ethereum account. if you",
+                "haven't change the default eth account, check the default one: ",
+                "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318 ",
+                "if it has any eth and ring left.\n\n",
+                "if you think this is a bug, please raise an issue at: ",
+                "https://github.com/darwinia-network/darwinia-offchain-tools/issues/new"
+            ].join(""), Logger.Error);
+        });
+    }
+
+    /** web3-1
      *
-     */
-    listen(strategy: number) {
-        switch (strategy) {
-            case 1:
-                this.queue.events.push(Event.GetBalance);
-                break;
-            case 2:
-                this.queue.events.push(Event.Reset);
-                break;
-            case 3:
-                this.queue.events.push(Event.Relay);
-                break;
-            case 4:
-                this.queue.events.push(Event.Redeem);
-                break;
-            case 0:
-                this.queue.events = this.queue.events.concat([
-                    Event.GetBalance,
-                    Event.Reset,
-                    Event.Relay,
-                    Event.Redeem,
-                ]);
-                break;
-            default:
-                process.exit(0);
-        }
-
-
-        let interval = setInterval(() => {
-            //  return if queue is active
-            if (this.queue.active) {
-                return;
+     * get receipt from darwinia baking
+     *
+     **/
+    getReceipt() {
+        let url = "https://alpha.evolution.land/api/darwinia/receipt?tx=";
+        https.get(url + this.headers.receiptHash, (res: any) => {
+            if (res.statusCode !== 200) {
+                log("get receipt from darwinia backing failed", Logger.Error);
             }
 
-            // move to next event if current event finished
-            if (this.queue.finished) {
-                switch (this.queue.events[0]) {
-                    case Event.Reset:
-                        log(`reset header succeed! 📦`, Logger.Success);
-                        break;
-                    case Event.Relay:
-                        log(`relay header succeed! 🎉`, Logger.Success);
-                        break;
-                    case Event.Redeem:
-                        log(`redeem receipt succeed! 🍺`, Logger.Success);
-                        break;
-                    case Event.Transfer:
-                        log("transfer 9999 RING to the contract holder");
-                        break;
-                    default:
-                        break;
+            let rawData = '';
+            res.on('data', (chunk: any) => { rawData += chunk; });
+            res.on("end", () => {
+                try {
+                    let receipt = JSON.parse(rawData).data;
+                    if (receipt.proof.length < 20) {
+                        return this.getReceipt();
+                    }
+
+                    this.headers.receipt = receipt;
+                    this.queue.finished = true;
+                    this.queue.active = false;
+                } catch (e) {
+                    log("get receipt failed", Logger.Error);
                 }
+            });
+        });
+    }
 
-                this.queue.active = true;
-                this.queue.finished = false;
-                this.queue.events = this.queue.events.slice(1);
-            }
+    /** web3-2
+     *
+     * get container header from darwinia baking
+     *
+     **/
+    async getContainerHeader() {
+        this.headers.container = await this.web3.eth.getBlock(
+            this.headers.receipt.header_hash
+        ).catch(() => {
+            log("get container block header failed", Logger.Error);
+        });
+        this.queue.finished = true;
+        this.queue.active = false;
+    }
 
-            // exit process if are events are finished
-            if (this.queue.events.length === 0) {
-                if (this.queue.success) {
-                    clearInterval(interval);
-                    log(
-                        "congratulation! the relay process has just launched at the Mars 🚀",
-                        Logger.Success
-                    );
-                    process.exit(0);
-                } else {
-                    process.exit(1);
-                }
-            }
-
-            // exec event
-            this.queue.active = true;
-            switch (this.queue.events[0]) {
-                case Event.GetBalance:
-                    log("get balance", Logger.EventMsg);
-                    this.getBalance();
-                    break;
-                case Event.Reset:
-                    log("reset genesis header", Logger.EventMsg);
-                    this.reset();
-                    break;
-                case Event.Relay:
-                    log("relay header", Logger.EventMsg);
-                    this.relay();
-                    break;
-                case Event.Redeem:
-                    log("redeem", Logger.EventMsg);
-                    this.redeem();
-                    break;
-                case Event.Transfer:
-                    log("transfer", Logger.EventMsg);
-                    this.transfer();
-                    break;
-                default:
-                    break;
-            }
-        }, 500);
+    /** web3-3
+     *
+     * get container header from darwinia baking
+     *
+     **/
+    async getGenesisHeader() {
+        this.headers.genesis = await this.web3.eth.getBlock(
+            this.headers.container.number - 1
+        ).catch(() => {
+            log("get genesis block header failed", Logger.Error);
+        });
+        this.queue.finished = true;
+        this.queue.active = false;
     }
 
     /** init Relay account
      *
-     * @sudo: root account that can reset header
+     * pre-init for the tests
      *
-     */
-    async init(
-        sudo = "//Alice",
-        addr = "ws://0.0.0.0:9944",
-    ) {
+     **/
+    async init() {
+        // set darwinia api
         this.api = await ApiPromise.create({
             types: customizeType,
-            provider: new WsProvider(addr),
+            provider: new WsProvider(this.config.addr),
         });
 
+        // set web3
+        this.web3 = new Web3(new Web3.providers.HttpProvider(this.config.web3));
+        this.web3.eth.accounts.wallet.add(this.config.priv);
+
         // add seed
-        this.account = new Keyring({ type: "sr25519" }).addFromUri(sudo);
+        this.account = new Keyring({ type: "sr25519" }).addFromUri(this.config.sudo);
         log("init darwinia account 🧙‍♂️", Logger.Success);
 
         // queue data
@@ -221,9 +223,11 @@ class Relay {
         }
 
         // transfer to the contract holder
-        let holder = await this.api.query.system.account(HOLDER);
+        let holder = await this.api.query.system.account(this.config.holder);
         if (holder.data.free_ring.toString() === "0") {
-            this.queue.events = [Event.GetBalance, Event.Transfer];
+            this.queue.events = this.queue.events.concat([
+                Event.GetBalance, Event.Transfer
+            ]);
         }
     }
 }
@@ -235,10 +239,10 @@ class Relay {
         name: 'value',
         message: 'Test which process?',
         choices: [
-            { title: 'All', description: 'Test all process, including ["genesis header", "relay header" and "redeem"]', value: 0 },
+            { title: 'All', description: 'Test all process dynamic', value: 0 },
             { title: 'Get Balances', description: 'Get balances in current account', value: 1 },
-            { title: 'Genesis header', description: 'init or reset genesis header', value: 2 },
-            { title: 'Relay header', description: "Relay new header to darwinia, Note: this will panic if you haven't init header", value: 3 },
+            { title: 'Reset header', description: 'init or reset genesis header', value: 2 },
+            { title: 'Relay header', description: "Relay a new header to darwinia", value: 3 },
             { title: 'Redeem', description: "redeem balances from darwinia", value: 4 },
         ],
         initial: 0,
@@ -246,8 +250,8 @@ class Relay {
         onCanceled: () => process.exit(0),
     });
 
-    let relay = new Relay();
+    let relay = new Relay(config);
     await relay.init();
 
-    relay.listen(res.value);
+    queue.call(relay, res.value);
 })();

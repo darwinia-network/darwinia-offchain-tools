@@ -1,4 +1,4 @@
-export default function mockContract(web3: any, addr: any): any {
+export default function burn(web3: any, addr: any): any {
     return new web3.eth.Contract([
         {
             "constant": true,

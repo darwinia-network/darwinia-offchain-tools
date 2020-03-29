@@ -1,9 +1,11 @@
 import Web3 from "web3";
-import Config from "../src/ethereum/Config";
 import burn from "./lib/burn";
 
 let sent = 0;
 let receipt = 0;
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const config = require("./config/default.json");
 
 // init sqlite3 to save txs
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -22,7 +24,7 @@ async function checkTable() {
         knex.schema.createTable("blocks", (table: any) => {
             table.integer("height");
             table.string("tx");
-        }).catch((e: any) => console.error);
+        }).catch((_: any) => console.error);
     }
 
     await knex("blocks").count("tx").then((r: any) => {
@@ -41,7 +43,7 @@ export default async function tx(addr: any, contract: any, loop: boolean) {
 
     await contract.send({
         from: addr,
-        gas: 500000,
+        gas: 1000000,
     })
         .on("receipt", (r: any) => {
             receipt += 1;
@@ -67,12 +69,14 @@ export default async function tx(addr: any, contract: any, loop: boolean) {
 // loop block and tx to sqlite
 async function loop() {
     console.log("[ info ]: start tx loop...");
-    const web3 = new Web3(new Web3.providers.HttpProvider(Config.network as string));
+    const web3 = new Web3(new Web3.providers.HttpProvider(
+        config.WEB3_RPC_SERVER + config.INFURA_KEYS[0]
+    ));
     web3.eth.accounts.wallet.add(
         "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
     );
 
-    const addr = web3.eth.accounts.wallet[0].address;
+    const addr = oweb3.eth.accounts.wallet[0].address;
     const contract = burn(web3, addr);
     await checkTable();
 
@@ -81,6 +85,7 @@ async function loop() {
         process.exit(1);
     });
 }
+
 
 /** Account
  * // in node.js

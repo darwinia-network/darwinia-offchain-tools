@@ -1,0 +1,16 @@
+{
+  "name": "cmd-tools",
+  "version": "1.0.0",
+  "main": "bin/proof.ts",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "knex": "^0.20.13",
+    "prompts": "^2.3.2",
+    "sqlite3": "^4.1.1"
+  },
+  "scripts": {
+    "crash": "ts-node bin/crash.ts",
+    "proof": "ts-node bin/proof.ts"
+  }
+}

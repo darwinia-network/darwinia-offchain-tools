@@ -37,3 +37,7 @@ Thumbs.db
 # Ignore built ts files
 dist/**/*
 
+# config
+config/.default.json
+**/*cl.json
+**/*blocks.db

@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
 
-readonly TARGET=$2
+readonly TMP="./config/tmp.json"
 readonly CONFIG="./config/default.json"
 readonly CONFIG_BAK="./config/.default.json"
 
 dev() {
     echo "[ info ]: change to dev mode...";
-    if [[ ! -e $TARGET ]];
-    then
-	echo "[ error ]: target config doesn't exist"
-	help
-	return;
-    fi
-       
-    cp $CONFIG $CONFIG_BAK
-    cp $TARGET $CONFIG
+    cp $CONFIG $TMP
+    cp $CONFIG_BAK $CONFIG
+    mv $TMP $CONFIG_BAK
 
     echo 'ok!'
 }
@@ -23,13 +17,15 @@ pub() {
     echo "[ info ]: change to public mode...";
     if [[ ! -e $CONFIG_BAK ]];
     then
-	echo "error: config backup doesn't exist"
-	reset
+	echo "info: config backup doesn't exist"
+	echo "info: generate new backup"
+	cp $CONFIG $CONFIG_BAK
+	
+	echo 'ok!'
 	exit 0
     fi
     
     cp $CONFIG_BAK $CONFIG
-
     echo 'ok!'
 }
 
@@ -41,7 +37,7 @@ reset() {
     then
 	exit 0
     fi
-    
+
     echo '{
     "WEB3_RPC_SERVER": "",
     "INFURA_KEYS": [],
@@ -49,7 +45,6 @@ reset() {
     "KEYRING": "",
     "SEED": ""
 }' > $CONFIG
-
     echo 'ok!'
 }
 
@@ -87,11 +82,9 @@ main() {
 	    ;;
 	*)
 	    help
-	    echo $TARGET
 	    ;;
     esac
 }
-
 
 # main
 main $@

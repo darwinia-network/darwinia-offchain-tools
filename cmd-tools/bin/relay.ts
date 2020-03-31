@@ -4,7 +4,7 @@ import { config } from "../cfg";
 
 // get eth headers
 async function getHeaders(headers: any[], block: number) {
-  let header = await this.web3.eth.getBlock(block);
+  const header = await this.web3.eth.getBlock(block);
   if (headers[0] === this.lastBlock) {
     headers = headers.slice(1);
     headers.push(header);
@@ -22,7 +22,7 @@ async function getHeaders(headers: any[], block: number) {
   config.sudo = config.relaySeed;
 
   // set relay service
-  let relay = new Relay(config);
+  const relay = new Relay(config);
   relay.relayService = true;
   await relay.init();
 
@@ -30,9 +30,9 @@ async function getHeaders(headers: any[], block: number) {
   // of blocksSafe.
   //
   // if the blocksSafe is 0, the value will be lucky 7.
-  let blocksLimit = relay.blocksSafe != 0 ?
+  const blocksLimit = relay.blocksSafe != 0 ?
     relay.blocksSafe * 2 : 7;
-  let headers = new Array(blocksLimit);
+  const headers = new Array(blocksLimit);
   headers.map(() => null);
 
   // async without await

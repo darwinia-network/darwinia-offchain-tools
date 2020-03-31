@@ -143,7 +143,7 @@ class Relay {
    *
    **/
   async getBestHeaderHash() {
-    let bestHeaderHash = await this.api.query.ethRelay.bestHeaderHash();
+    const bestHeaderHash = await this.api.query.ethRelay.bestHeaderHash();
     this.lastBlock = await this.web3.eth.getBlock(bestHeaderHash);
     this.queue.active = false;
   }

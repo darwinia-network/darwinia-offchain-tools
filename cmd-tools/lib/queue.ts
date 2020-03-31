@@ -24,7 +24,7 @@ const RelayService = [
   Event.GetBestHeaderHash,
   Event.GetContainerHeader,
   Event.Relay,
-]
+];
 
 export interface Queue {
   active: boolean;

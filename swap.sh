@@ -5,7 +5,7 @@ readonly CONFIG="./config/default.json"
 readonly CONFIG_BAK="./config/.default.json"
 
 dev() {
-    echo "[ info ]: change to dev mode...";
+    printf "[ info ]: change to dev mode...";
     cp $CONFIG $TMP
     cp $CONFIG_BAK $CONFIG
     mv $TMP $CONFIG_BAK
@@ -14,7 +14,7 @@ dev() {
 }
 
 pub() {
-    echo "[ info ]: change to public mode...";
+    printf "[ info ]: change to public mode...";
     if [[ ! -e $CONFIG_BAK ]];
     then
 	echo "info: config backup doesn't exist"
@@ -30,7 +30,7 @@ pub() {
 }
 
 reset() {
-    echo '[ question ] reset config? [y/n]'
+    printf '[ question ] reset config? [y/n]'
     read ans
     
     if [[ $ans != 'y' ]];
@@ -45,7 +45,7 @@ reset() {
     "KEYRING": "",
     "SEED": ""
 }' > $CONFIG
-    echo 'ok!'
+    echo '...ok!'
 }
 
 help() {

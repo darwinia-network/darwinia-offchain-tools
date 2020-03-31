@@ -43,6 +43,34 @@ export function log(s: any, logger?: Logger) {
     }
 }
 
+function parseRes(r: any) {
+    const status = r.status;
+    log(`Transaction status: ${status.type}`);
+
+    if (status.isInBlock) {
+        log(`Included at block hash: ${status.asInBlock.toHex()}`);
+        r.events && r.events.forEach(async (r: any) => {
+            log(
+                "\t" +
+                r.phase.toString() +
+                `: ${r.event.section}.${r.event.method}` +
+                r.event.data.toString()
+            );
+
+            // error	
+            if (r.event.data[0].isModule) {
+                const doc = await this.api.registry.findMetaError(r.event.data[0].asModule);
+                const err = `${doc.name}.${doc.section} - ${doc.documentation.join(" ")}`;
+                log(err, Logger.Error);
+                process.exit(1);
+            }
+        });
+    } else if (status.isFinalized) {
+        log(`Finalized block hash: ${status.asFinalized.toHex()}`);
+        this.queue.active = false;
+    }
+}
+
 export function storePath(s: string): string {
     s = s.replace("~", os.homedir());
     const dirName = path.dirname(s);

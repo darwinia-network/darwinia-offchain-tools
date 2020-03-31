@@ -67,35 +67,18 @@ export default async function tx(addr: any, contract: any, loop: boolean) {
 async function loop() {
     log("start tx loop...");
     const web3 = new Web3(new Web3.providers.HttpProvider(config.web3));
-    web3.eth.accounts.wallet.add(
-        "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
-    );
+    web3.eth.accounts.wallet.add(config.priv);
 
     const addr = web3.eth.accounts.wallet[0].address;
     const contract = burn(web3, addr);
     await checkTable();
 
     tx(addr, contract, true).catch(() => {
-        console.error("[ error ]: tx loop got broken.");
-        process.exit(1);
+        log("tx loop got broken.", Logger.Error);
     });
 }
 
-
-/** Account
- * // in node.js
- * var Web3EthAccounts = require('web3-eth-accounts');
- * 
- * var account = new Web3EthAccounts('ws://localhost:8546');
- * account.create();
- * > {
- *   address: '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23',
- *   privateKey: '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318',
- *   signTransaction: function(tx){...},
- *   sign: function(data){...},
- *   encrypt: function(password){...}
- * }
- */
+// main
 (function() {
     loop();
 }());

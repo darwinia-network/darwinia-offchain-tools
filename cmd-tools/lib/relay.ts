@@ -23,8 +23,6 @@ class Relay {
     queue: Queue;
     // receipt, container and genesis header suite.
     headers: Headers;
-    // the last eth block in darwinia
-    lastBlock: any;
     // if use relay service
     relayService: boolean;
     // the blocks safe of darwinia
@@ -68,8 +66,15 @@ class Relay {
      *  Note: If you want to test sending tx to Ethereum, please checkout "./crash.ts".
      *
      **/
-    relay() {
-        const ex = this.api.tx.ethRelay.relayHeader(parseHeader(this.headers.container));
+    relay(ctn?: any) {
+        if (ctn == undefined) {
+            ctn = this.headers.container;
+            if (!this.relayService) {
+                ctn = parseHeader(ctn);
+            }
+        }
+
+        const ex = this.api.tx.ethRelay.relayHeader(ctn);
         st.call(this, ex, "relay header failed!");
     }
 
@@ -135,17 +140,6 @@ class Relay {
                 }
             });
         });
-    }
-
-    /** darwinia-3
-     *
-     * get receipt from darwinia baking
-     *
-     **/
-    async getBestHeaderHash() {
-        const bestHeaderHash = await this.api.query.ethRelay.bestHeaderHash();
-        this.lastBlock = await this.web3.eth.getBlock(bestHeaderHash);
-        this.queue.active = false;
     }
 
     /** web3-1

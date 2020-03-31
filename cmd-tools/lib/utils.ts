@@ -16,7 +16,7 @@ export enum Logger {
     Warn,
 }
 
-export function log(s: any, logger?: Logger) {
+export async function log(s: any, logger?: Logger) {
     const l = chalk.dim("[ ");
     const r = chalk.dim(" ]:");
 
@@ -26,7 +26,7 @@ export function log(s: any, logger?: Logger) {
             process.exit(1);
         case Logger.Event:
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            parseRes.call(this, s);
+            await parseRes.call(this, s);
             break;
         case Logger.EventMsg:
             console.log(`${l + chalk.magenta("event") + r} ${s}`);
@@ -43,7 +43,7 @@ export function log(s: any, logger?: Logger) {
     }
 }
 
-function parseRes(r: any) {
+export async function parseRes(r: any) {
     const status = r.status;
     log(`Transaction status: ${status.type}`);
 
@@ -61,8 +61,11 @@ function parseRes(r: any) {
             if (r.event.data[0].isModule) {
                 const doc = await this.api.registry.findMetaError(r.event.data[0].asModule);
                 const err = `${doc.name}.${doc.section} - ${doc.documentation.join(" ")}`;
-                log(err, Logger.Error);
-                process.exit(1);
+                if (this.relayService) {
+                    log(err, Logger.Warn);
+                } else {
+                    log(err, Logger.Error);
+                }
             }
         });
     } else if (status.isFinalized) {

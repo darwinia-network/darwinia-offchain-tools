@@ -1,9 +1,9 @@
 import * as path from "path";
 import Web3 from "web3";
 import { config } from "../cfg";
-import { storePath, log, Logger, parseHeader } from "../lib/utils";
+import { storePath, log, Logger, parseHeader } from "./utils";
 
-// init sqlite3 to save txs
+// init sqlite3 to save blocks
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const knex = require("knex")({
     client: "sqlite3",
@@ -58,8 +58,8 @@ export default async function fetch(number: number, loop: boolean) {
 
         if (block != null) {
             block = parseHeader(block);
-            log(`got block ${block.hash}`);
-            log(`\t${JSON.stringify(block)}`);
+            // log(`got block ${block.hash}`);
+            // log(`\t${JSON.stringify(block)}`);
             await knex("blocks").insert({
                 height: number,
                 block: JSON.stringify(block)
@@ -78,7 +78,7 @@ export default async function fetch(number: number, loop: boolean) {
 }
 
 // loop block and tx to sqlite
-async function loop(start: number) {
+export async function fetcher(start: number) {
     log(`start fetching eth headers from ${start}...`);
     const web3 = new Web3(new Web3.providers.HttpProvider(config.web3));
     await checkTable(start);
@@ -88,15 +88,15 @@ async function loop(start: number) {
     });
 }
 
-// main
-(function() {
-    const args = process.argv;
-    if (args.length < 3) {
-        log([
-            "wrong args, please pass the start block number, ",
-            "FOR EXAMPLE: ts-node fetcher.ts 767676",
-        ].join(""), Logger.Error);
-    }
 
-    loop(parseInt(args[args.length - 1]));
-}());
+export async function getBlock(number: number) {
+    let tx = await knex("blocks")
+        .select("*")
+        .whereRaw(`blocks.height = ${number}`);
+
+    if (tx.length === 0) {
+        return false;
+    } else {
+        return JSON.parse(tx[0].block);
+    }
+}

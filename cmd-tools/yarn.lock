@@ -2,10 +2,22 @@
 # yarn lockfile v1
 
 
+"@types/chalk@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.npm.taobao.org/@types/chalk/download/@types/chalk-2.2.0.tgz#b7f6e446f4511029ee8e3f43075fb5b73fbaa0ba"
+  integrity sha1-t/bkRvRRECnujj9DB1+1tz+6oLo=
+  dependencies:
+    chalk "*"
+
 "@types/color-name@^1.1.1":
   version "1.1.1"
   resolved "https://registry.npm.taobao.org/@types/color-name/download/@types/color-name-1.1.1.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fcolor-name%2Fdownload%2F%40types%2Fcolor-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha1-HBJhu+qhCoBVu8XYq4S3sq/IRqA=
+
+"@types/node@^13.9.8":
+  version "13.9.8"
+  resolved "https://registry.npm.taobao.org/@types/node/download/@types/node-13.9.8.tgz#09976420fc80a7a00bf40680c63815ed8c7616f4"
+  integrity sha1-CZdkIPyAp6AL9AaAxjgV7Yx2FvQ=
 
 abbrev@1:
   version "1.1.1"
@@ -189,7 +201,7 @@ caseless@~0.12.0:
   resolved "https://registry.npm.taobao.org/caseless/download/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-chalk@^3.0.0:
+chalk@*, chalk@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npm.taobao.org/chalk/download/chalk-3.0.0.tgz?cache=0&sync_timestamp=1573282918610&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fchalk%2Fdownload%2Fchalk-3.0.0.tgz#3f73c2bf526591f574cc492c51e2456349f844e4"
   integrity sha1-P3PCv1JlkfV0zEksUeJFY0n4ROQ=

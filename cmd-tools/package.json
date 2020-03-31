@@ -12,5 +12,9 @@
   "scripts": {
     "crash": "ts-node bin/crash.ts",
     "proof": "ts-node bin/proof.ts"
+  },
+  "devDependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/node": "^13.9.8"
   }
 }

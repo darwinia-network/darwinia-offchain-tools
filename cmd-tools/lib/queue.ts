@@ -35,7 +35,6 @@ export interface Queue {
 export interface Headers {
   genesis: any;            // genesis header
   container: any;          // the header contains our tx
-  currentHeight: number;   // current relayed header in darwinia
   receipt: any;            // the receipt proof of darwinia
   receiptHash: any;        // the receipt hash of burn cotract
 }
@@ -78,7 +77,7 @@ export async function queue(strategy: number) {
       this.queue.events.push(Event.Redeem);
       break;
     case 6:
-      this.queue.events = this.queue.events.concat(RelayService);
+      this.queue.events.push(Event.Relay);
       break;
     case 0:
       this.queue.events = this.queue.events.concat(TxFamily);
@@ -121,7 +120,7 @@ export async function queue(strategy: number) {
       case Event.Relay:
         log("relay header succeed! 🎉", Logger.Success);
         if (this.relayService) {
-          this.queue.events = this.queue.events.concat(RelayService);
+          this.queue.events = this.queue.events.push(Event.Relay);
         }
         break;
       case Event.Redeem:
@@ -134,6 +133,7 @@ export async function queue(strategy: number) {
         break;
     }
 
+    console.log(this);
     this.queue.active = true;
     this.queue.events = this.queue.events.slice(1);
 

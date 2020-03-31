@@ -6,6 +6,7 @@ interface Config {
   sudo: string;
   web3: string;
   relaySeed: string;
+  root: string;
 }
 
 const config: Config = {
@@ -47,6 +48,14 @@ const config: Config = {
   // you are wondering how to get some ring, plz check out the README under
   // this directory
   priv: "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318",
+
+  // storage root
+  //
+  // - the crash script will save blocks to `${root}/crash_blocks.db`
+  // - the relay-service will save blocks to `${root}/relay_blocks.db`
+  //
+  // this command tool will parse `~` as home_dir directly
+  root: "~/.darwinia",
 };
 
 export {

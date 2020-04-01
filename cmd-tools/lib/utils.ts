@@ -57,15 +57,10 @@ export async function parseRes(r: any) {
                 r.event.data.toString()
             );
 
-            // error	
             if (r.event.data[0].isModule) {
                 const doc = await this.api.registry.findMetaError(r.event.data[0].asModule);
                 const err = `${doc.name}.${doc.section} - ${doc.documentation.join(" ")}`;
-                if (this.relayService) {
-                    log(err, Logger.Warn);
-                } else {
-                    log(err, Logger.Error);
-                }
+                log(err, Logger.Error);
             }
         });
     } else if (status.isFinalized) {
@@ -86,6 +81,7 @@ export function storePath(s: string): string {
     return s;
 }
 
+// sign tx
 export function st(ex: any, err: string) {
     ex.signAndSend(
         this.account, {}, (r: any) => {

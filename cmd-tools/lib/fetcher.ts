@@ -22,7 +22,7 @@ async function checkTable(start: number) {
             table.string("block").unique();
         }).catch((e: any) => log(e, Logger.Error));
     } else {
-        // delete used blocks
+        // delete useless blocks
         await knex("blocks")
             .where("height", "<", start)
             .del();
@@ -53,32 +53,35 @@ export default async function fetch(number: number, loop: boolean) {
         return;
     }
 
-    try {
-        let block = await this.eth.getBlock(number);
+    let block = await this.eth.getBlock(number).catch(async (e: any) => {
+        log(e, Logger.Warn);
+        await restart.call(this, number);
+    });
 
-        if (block != null) {
-            block = parseHeader(block);
-            // log(`got block ${block.hash}`);
-            // log(`\t${JSON.stringify(block)}`);
-            await knex("blocks").insert({
-                height: number,
-                block: JSON.stringify(block)
-            });
+    if (block != null) {
+        block = parseHeader(block);
+        log(`got block ${block.hash}`);
+        log(`\t${JSON.stringify(block)}`);
+        await knex("blocks").insert({
+            height: number,
+            block: JSON.stringify(block)
+        });
 
-            if (loop) {
-                await fetch.call(this, number + 1, true);
-            }
-        } else {
-            await restart.call(this, number);
+        if (loop) {
+            await fetch.call(this, number + 1, true);
         }
-    } catch (e) {
-        console.error(e);
+    } else {
         await restart.call(this, number);
     }
 }
 
 // loop block and tx to sqlite
-export async function fetcher(start: number) {
+export async function fetcher(start?: number) {
+    if (start === undefined) {
+        let r = await knex("blocks").max("height");
+        start = r[0]["max(`height`)"];
+    }
+
     log(`start fetching eth headers from ${start}...`);
     const web3 = new Web3(new Web3.providers.HttpProvider(config.web3));
     await checkTable(start);
@@ -88,9 +91,8 @@ export async function fetcher(start: number) {
     });
 }
 
-
 export async function getBlock(number: number) {
-    let tx = await knex("blocks")
+    const tx = await knex("blocks")
         .select("*")
         .whereRaw(`blocks.height = ${number}`);
 

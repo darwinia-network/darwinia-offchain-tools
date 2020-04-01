@@ -70,9 +70,6 @@ export async function queue(strategy: number) {
             }
             this.queue.events.push(Event.Redeem);
             break;
-        case 6:
-            this.queue.events.push(Event.Relay);
-            break;
         case 0:
             this.queue.events = this.queue.events.concat(TxFamily);
             this.queue.events = this.queue.events.concat([
@@ -101,9 +98,7 @@ export async function queue(strategy: number) {
                 log(`\t${JSON.stringify(this.headers.receipt)}`);
                 break;
             case Event.GetContainerHeader:
-                if (!this.relayService) {
-                    log(`\t${JSON.stringify(this.headers.container)}`);
-                }
+                log(`\t${JSON.stringify(this.headers.container)}`);
                 break;
             case Event.GetGenesisHeader:
                 log(`\t${JSON.stringify(this.headers.genesis)}`);
@@ -112,11 +107,7 @@ export async function queue(strategy: number) {
                 log("reset header succeed! 📦", Logger.Success);
                 break;
             case Event.Relay:
-                if (this.relayService) {
-                    this.queue.events.push(Event.Relay);
-                } else {
-                    log("relay header succeed! 🎉", Logger.Success);
-                }
+                log("relay header succeed! 🎉", Logger.Success);
                 break;
             case Event.Redeem:
                 log("redeem receipt succeed! 🍺", Logger.Success);

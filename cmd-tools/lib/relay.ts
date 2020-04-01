@@ -23,10 +23,8 @@ class Relay {
     queue: Queue;
     // receipt, container and genesis header suite.
     headers: Headers;
-    // if use relay service
-    relayService: boolean;
-    // the blocks safe of darwinia
-    blocksSafe: number;
+    // the last eth block
+    lastBlock: any;
 
     /** constructor
      *
@@ -63,18 +61,11 @@ class Relay {
      * 
      *  relay a new header that contains an exists darwinia tx.
      *
-     *  Note: If you want to test sending tx to Ethereum, please checkout "./crash.ts".
+     *  Note: If you want to test sending tx to Ethereum, please checkout "./crashq.ts".
      *
      **/
-    relay(ctn?: any) {
-        if (ctn == undefined) {
-            ctn = this.headers.container;
-            if (!this.relayService) {
-                ctn = parseHeader(ctn);
-            }
-        }
-
-        const ex = this.api.tx.ethRelay.relayHeader(ctn);
+    relay() {
+        const ex = this.api.tx.ethRelay.relayHeader(this.headers.container);
         st.call(this, ex, "relay header failed!");
     }
 
@@ -181,11 +172,11 @@ class Relay {
      *
      **/
     async getContainerHeader() {
-        this.headers.container = await this.web3.eth.getBlock(
+        this.headers.container = parseHeader(await this.web3.eth.getBlock(
             this.headers.receipt.header_hash
         ).catch(() => {
             log("get container block header failed", Logger.Error);
-        });
+        }));
         this.queue.active = false;
     }
 
@@ -195,11 +186,11 @@ class Relay {
      *
      **/
     async getGenesisHeader() {
-        this.headers.genesis = await this.web3.eth.getBlock(
+        this.headers.genesis = parseHeader(await this.web3.eth.getBlock(
             this.headers.container.number - 1
         ).catch(() => {
             log("get genesis block header failed", Logger.Error);
-        });
+        }));
         this.queue.active = false;
     }
 
@@ -222,9 +213,6 @@ class Relay {
         // add seed
         this.account = new Keyring({ type: "sr25519" }).addFromUri(this.config.sudo);
         log("init darwinia account 🧙‍♂️", Logger.Success);
-
-        // set blocksSafe
-        this.blocksSafe = await this.api.query.ethRelay.numberOfBlocksSafe();
 
         // queue data
         this.queue = {

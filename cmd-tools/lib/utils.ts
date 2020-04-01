@@ -94,7 +94,7 @@ export function st(ex: any, err: string) {
     ).catch(() => log(err, Logger.Error));
 }
 
-export function parseHeader(block: any): any {
+export function parseHeader(block: any): Block {
     const mixh = bufferToU8a(rlp.encode(block.mixHash));
     const nonce = bufferToU8a(rlp.encode(block.nonce));
     const seal = [u8aToHex(mixh), u8aToHex(nonce)];
@@ -116,4 +116,22 @@ export function parseHeader(block: any): any {
         "seal": seal,
         "hash": block.hash
     };
+}
+
+export interface Block {
+    "parent_hash": string;
+    "timestamp": number;
+    "number": string;
+    "auth": string;
+    "transaction_root": string;
+    "uncles_hash": string;
+    "extra_data": string;
+    "state_root": string;
+    "receipts_root": string;
+    "log_bloom": string;
+    "gas_used": string;
+    "gas_limit": string;
+    "difficulty": number;
+    "seal": string[];
+    "hash": string;
 }

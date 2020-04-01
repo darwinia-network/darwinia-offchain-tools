@@ -1,6 +1,6 @@
-import { fetcher } from "../lib/fetcher";
+import FetcherService from "../services/fetcher";
 
-// main
 (function() {
-    fetcher();
+    const service = new FetcherService();
+    service.start();
 })();

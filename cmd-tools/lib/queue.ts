@@ -1,5 +1,4 @@
 import { log, Logger } from "./utils";
-import { getBlock } from "./fetcher";
 
 export enum Event {
     GetBalance,

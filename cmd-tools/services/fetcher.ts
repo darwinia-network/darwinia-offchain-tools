@@ -8,9 +8,11 @@ import { config } from "../cfg";
 import { storePath, log, Logger, parseHeader } from "../lib/utils";
 
 class Fetcher extends Service {
-    knex: any;
-    web3: any;
-    loop: boolean;
+    private knex: any;
+    private web3: any;
+    public max: number;
+    public count: number;
+    protected loop: boolean;
 
     constructor() {
         super();
@@ -30,8 +32,8 @@ class Fetcher extends Service {
             new Web3.providers.HttpProvider(config.web3)
         );
 
-        // fetcher loop
-        this.loop = true;
+        this.loop = false;
+        this.max = 0;
     }
 
     /**
@@ -58,11 +60,18 @@ class Fetcher extends Service {
      */
     public async start(start?: number): Promise<void> {
         if (start === undefined) {
-            start = await this.max();
+            const max = await this.knex("blocks").max("height");
+            start = max[0]["max(`height`)"];
         }
 
-        log(`start fetching eth headers from ${start}...`);
+        // set status
+        const count = await this.knex("blocks").count("height");
+        this.max = start;
+        this.count = count[0]["count(`height`)"];
+
+        this.loop = true;
         await this.checkTable(start);
+        log(`start fetching eth headers from ${start}...`, Logger.EventMsg);
 
         this.fetch(start).catch(() => {
             log("eth header fetcher got broken", Logger.Error);
@@ -75,17 +84,18 @@ class Fetcher extends Service {
      *
      */
     public async stop(): Promise<void> {
+        log("stop fetcher process...", Logger.EventMsg);
         this.loop = false;
     }
 
+
     /**
      *
-     * max height of current storage
+     * if fetcher is running 
      *
      */
-    public async max(): Promise<number> {
-        const res = await this.knex("blocks").max("height");
-        return res[0]["max(`height`)"];
+    public status(): boolean {
+        return this.loop;
     }
 
     /**
@@ -106,6 +116,7 @@ class Fetcher extends Service {
             return;
         }
 
+        log(`fetching the ${number} block...`);
         let block = await this.web3.eth.getBlock(number).catch(async (e: any) => {
             log(e, Logger.Warn);
             await this.restart(number);
@@ -119,6 +130,8 @@ class Fetcher extends Service {
                 height: number,
                 block: JSON.stringify(block)
             });
+
+            this.max == number;
 
             if (this.loop) {
                 await this.fetch(number + 1);

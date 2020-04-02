@@ -31,14 +31,29 @@ class RelayService extends Service {
         this.fetcher = new Fetcher();
     }
 
-
     public async start(): Promise<void> {
         await this.relay.init();
         await this.startFromBestHeaderHash();
 
+        // set safe block, if it is zero use lucky 7 or safe * 2 in darwinia
+        let safe: number = await this.relay.api.query.ethRelay.numberOfBlocksSafe();
+        safe = safe === 0 ? 7 : safe * 2;
+
         // start relay queue
-        this.interval = setInterval(() => {
-            if (this.lock || !this.next) return;
+        this.interval = setInterval(async () => {
+            if (this.lock || this.next === null) return;
+            if (
+                this.fetcher.max >= this.next.number + safe ||
+                (this.fetcher.max - this.fetcher.count) <= this.next.number
+            ) {
+                await this.fetcher.stop();
+            } else if (
+                this.fetcher.max <= this.next.number + safe / 3 &&
+                this.fetcher.status() === false
+            ) {
+                await this.fetcher.start(this.next.number);
+            }
+
             this.relayNext();
         }, 1000);
     }
@@ -74,9 +89,10 @@ class RelayService extends Service {
             log([
                 "get last block failed, please make sure that ",
                 "you have reset the genesis eth header"
-            ].join(""), Logger.Warn);
+            ].join(""), Logger.Error);
         }
 
+        log(`got last eth block ${lastBlock.number} from ethereum`);
         this.next = lastBlock;
         await this.getNextBlock();
     }
@@ -88,29 +104,38 @@ class RelayService extends Service {
         let tried = 0;
         const lastBlock = this.next;
         let next = await this.fetcher.getBlock(lastBlock.number + 1);
-        if (next === false || next === undefined) {
+        if (next === null || next === undefined) {
             const retry = setInterval(async () => {
                 if (tried >= 10) {
-                    log("tried too many times, please check the fetcher process", Logger.Error);
+                    log([
+                        "tried too many times, please check your network first",
+                        "if it is okay, check the fetcher process or raise an ",
+                        "issue at: ",
+                        "https://github.com/darwinia-network/darwinia-offchain-tools/issues/new"
+                    ], Logger.Error);
+                }
+
+                if (!this.fetcher.status()) {
+                    await this.fetcher.start(lastBlock.number);
                 }
 
                 tried += 1;
-                log("get block failed, wait 5s for fetcher process...", Logger.Warn);
+                log("get block failed, wait 10s for fetcher process...", Logger.Warn);
                 next = await this.fetcher.getBlock(lastBlock.number + 1);
 
-                if (next != false && next != undefined) {
+                if (next != null && next != undefined) {
                     this.next = next;
                     clearInterval(retry);
                 }
-            }, 5000);
+            }, 10000);
         }
 
         this.next = next;
     }
 
-    /** relay the next eth block
+    /** 
      *
-     * @this: Share
+     * relay the next eth block
      *
      */
     private relayNext() {

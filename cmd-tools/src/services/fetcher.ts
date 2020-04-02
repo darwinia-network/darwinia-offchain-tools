@@ -1,23 +1,22 @@
-/**
- * eth header fetcher
- */
+/* tslint:disable:no-var-requires */
 import * as path from "path";
 import Web3 from "web3";
-import { config } from "../../cfg";
+import { IConfig } from "../types";
 import { log, Logger, parseHeader, storePath } from "../utils";
 import Service from "./service";
+
 class Fetcher extends Service {
     public max: number;
     public count: number;
     protected loop: boolean;
+    protected config: IConfig;
     private knex: any;
     private web3: any;
 
-    constructor() {
+    constructor(config: IConfig) {
         super();
 
         // init sqlite3 to save blocks
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         this.knex = require("knex")({
             client: "sqlite3",
             connection: {

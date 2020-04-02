@@ -9,7 +9,7 @@
     "proof": "ts-node bin/proof.ts",
     "relay": "ts-node bin/relay.ts",
     "build": "tsc --strict",
-    "lint": "tslint -c ./tslint.json --type-check src/**/*.ts"
+    "lint": "tsc --noEmit && tslint -c ./tslint.json --type-check src/**/*.ts --strict"
   },
   "husky": {
     "hooks": {

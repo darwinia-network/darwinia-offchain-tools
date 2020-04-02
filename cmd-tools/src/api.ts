@@ -1,34 +1,37 @@
 import * as https from "https";
-import burn from "./burn";
 import customizeType from "./json/types.json";
 import Keyring from "@polkadot/keyring";
 import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { Config } from "../cfg";
-import { Event, Headers, Queue } from "./queue";
+import { Event, IQueue, IConfig } from "./types";
 import { headers, receipt } from "./json/headers.json";
-import { log, Logger, parseHeader, st } from "./utils";
+import { burn, Logger, log, parseHeader } from "./utils";
 
-class Relay {
+export interface IHeaders {
+    genesis: any;            // genesis header
+    container: any;          // the header contains our tx
+    receipt: any;            // the receipt proof of darwinia
+    receiptHash: any;        // the receipt hash of burn cotract
+}
+
+class API {
     public api: any;
     public web3: any;
     // darwinia account
     public account: any;
     // relay config
-    public config: Config;
+    public config: IConfig;
     // queue status
-    public queue: Queue;
+    public queue: IQueue;
     // receipt, container and genesis header suite.
-    public headers: Headers;
-    // the last eth block
-    public lastBlock: any;
+    public headers: IHeaders;
 
     /** constructor
      *
      * construct relay with config
      *
      **/
-    constructor(config: Config) {
+    constructor(config: IConfig) {
         this.config = config;
 
         // use default headers
@@ -51,7 +54,7 @@ class Relay {
         const ex = this.api.tx.ethRelay.resetGenesisHeader(
             parseHeader(this.headers.genesis), this.headers.genesis.totalDifficulty,
         );
-        st.call(this, ex, "reset genesis block failed!");
+        this.st(ex, "reset genesis block failed!");
     }
 
     /** step-2
@@ -63,7 +66,7 @@ class Relay {
      **/
     relay() {
         const ex = this.api.tx.ethRelay.relayHeader(this.headers.container);
-        st.call(this, ex, "relay header failed!");
+        this.st(ex, "relay header failed!");
     }
 
     /** step-3
@@ -73,10 +76,9 @@ class Relay {
      **/
     redeem() {
         const ex = this.api.tx.ethBacking.redeem({
-            Ring: this.headers.receipt
-            ,
+            Ring: this.headers.receipt,
         });
-        st.call(this, ex, "redeem receipt failed!");
+        this.st(ex, "redeem receipt failed!");
     }
 
     /** darwinia-0
@@ -86,7 +88,7 @@ class Relay {
      **/
     transfer() {
         const ex = this.api.tx.balances.transfer(this.config.holder, 9999999999999);
-        st.call(this, ex, "transfer failed!");
+        this.st(ex, "transfer failed!");
     }
 
     /** darwinia-1
@@ -96,8 +98,8 @@ class Relay {
      **/
     async getBalance() {
         const account = await this.api.query.system.account(this.account.address).catch(
-            () => log("get balance failed!", Logger.Error)
- ,       );
+            () => log("get balance failed!", Logger.Error),
+        );
 
         log(`now we own ${account.data.free_ring} RING 💰`, Logger.Success);
         this.queue.active = false;
@@ -173,10 +175,10 @@ class Relay {
      **/
     async getContainerHeader() {
         this.headers.container = parseHeader(await this.web3.eth.getBlock(
-            this.headers.receipt.header_hash
- ,       ).catch(() => {
-                log("get container block header failed", Logger.Error);
-            }));
+            this.headers.receipt.header_hash,
+        ).catch(() => {
+            log("get container block header failed", Logger.Error);
+        }));
         this.queue.active = false;
     }
 
@@ -187,10 +189,10 @@ class Relay {
      **/
     async getGenesisHeader() {
         this.headers.genesis = parseHeader(await this.web3.eth.getBlock(
-            this.headers.container.number - 1
- ,       ).catch(() => {
-                log("get genesis block header failed", Logger.Error);
-            }));
+            this.headers.container.number - 1,
+        ).catch(() => {
+            log("get genesis block header failed", Logger.Error);
+        }));
         this.queue.active = false;
     }
 
@@ -225,11 +227,23 @@ class Relay {
         const holder = await this.api.query.system.account(this.config.holder);
         if (holder.data.free_ring.toString() === "0") {
             this.queue.events = this.queue.events.concat([
-                Event.GetBalance, Event.Transfer
-                ,]);
+                Event.GetBalance, Event.Transfer,
+            ]);
         }
+    }
+
+    private st(ex: any, err: string) {
+        ex.signAndSend(
+            this.account, {}, (r: any) => {
+                try {
+                    log.call(this, r, Logger.Event);
+                } catch (_) {
+                    log(err, Logger.Error);
+                }
+            },
+        ).catch(() => log(err, Logger.Error));
     }
 }
 
 // export relay
-export default Relay;
+export default API;

@@ -1,20 +1,33 @@
 /* tslint:disable:no-var-requires */
-import { config } from "../../cfg";
-import { queue } from "../queue";
-import Relay from "../relay";
+import config from "../../cfg";
+import { Queue, QueueCase } from "../queue";
 
 const prompts = require("prompts");
 
 // main
 (async () => {
     const res = await prompts({
-        choices: [
-            { title: "All", description: "Test all process dynamic", value: 0 },
-            { title: "Get Balances", description: "Get balances in current account", value: 1 },
-            { title: "Reset header", description: "init or reset genesis header", value: 2 },
-            { title: "Relay header", description: "Relay a new header to darwinia", value: 3 },
-            { title: "Redeem", description: "redeem balances from darwinia", value: 4 },
-        ],
+        choices: [{
+            description: "Test all process dynamic",
+            title: "All",
+            value: QueueCase.TestAll,
+        }, {
+            description: "Get balances in current account",
+            title: "Get Balances",
+            value: QueueCase.GetBalance,
+        }, {
+            description: "init or reset genesis header",
+            title: "Reset header",
+            value: QueueCase.ResetGenesis,
+        }, {
+            description: "Relay a new header to darwinia",
+            title: "Relay header",
+            value: QueueCase.RelayHeader,
+        }, {
+            description: "redeem balances from darwinia",
+            title: "Redeem",
+            value: QueueCase.RedeemBalances,
+        }],
         initial: 0,
         message: "Test which process?",
         name: "value",
@@ -23,8 +36,8 @@ const prompts = require("prompts");
         onCanceled: () => process.exit(0),
     });
 
-    const proof = new Relay(config);
-    await proof.init();
+    const queue = new Queue(config);
+    await queue.init();
 
-    queue.call(proof, res.value);
+    queue.run(res.value);
 })();

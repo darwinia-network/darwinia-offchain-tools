@@ -1,13 +1,23 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* tslint:disable:variable-name */
+/* tslint:disable:no-var-requires */
+/* tslint:disable:no-use-before-defined */
+/**
+ *
+ * if you want to modify the code of this file, please pay
+ * attention to the usage of `this` in this file, they are
+ * all support for api.
+ *
+ */
 const chalk = require("chalk");
 
+import { abi } from "./json/abi.json";
 import { bufferToU8a, u8aToHex } from "@polkadot/util";
 import { rlp } from "ethereumjs-util";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-export enum Logger {
+enum Logger {
     Error,
     Event,
     EventMsg,
@@ -16,7 +26,17 @@ export enum Logger {
     Warn,
 }
 
-export async function log(s: any, logger?: Logger) {
+function burn(web3: any, addr: any): any {
+    return new web3.eth.Contract(abi, "0xb52FBE2B925ab79a821b261C82c5Ba0814AAA5e0")
+        .methods.transferFrom(
+            addr,
+            "0xdBC888D701167Cbfb86486C516AafBeFC3A4de6e",
+            "1000000000000000000",
+            "0x2ad7b504ddbe25a05647312daa8d0bbbafba360686241b7e193ca90f9b01f95faa",
+        );
+}
+
+async function log(s: any, logger?: Logger) {
     const l = chalk.dim("[ ");
     const r = chalk.dim(" ]:");
 
@@ -25,7 +45,6 @@ export async function log(s: any, logger?: Logger) {
             console.error(`${l + chalk.red("error") + r} ${s}`);
             process.exit(1);
         case Logger.Event:
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             await parseRes.call(this, s);
             break;
         case Logger.EventMsg:
@@ -43,7 +62,7 @@ export async function log(s: any, logger?: Logger) {
     }
 }
 
-export async function parseRes(r: any) {
+async function parseRes(r: any) {
     const status = r.status;
     log(`Transaction status: ${status.type}`);
 
@@ -69,7 +88,7 @@ export async function parseRes(r: any) {
     }
 }
 
-export function storePath(s: string): string {
+function storePath(s: string): string {
     s = s.replace("~", os.homedir());
     const dirName = path.dirname(s);
     if (!fs.existsSync(dirName)) {
@@ -81,20 +100,8 @@ export function storePath(s: string): string {
     return s;
 }
 
-// sign tx
-export function st(ex: any, err: string) {
-    ex.signAndSend(
-        this.account, {}, (r: any) => {
-            try {
-                log.call(this, r, Logger.Event);
-            } catch (_) {
-                log(err, Logger.Error);
-            }
-        },
-    ).catch(() => log(err, Logger.Error));
-}
 
-export function parseHeader(block: any): any {
+function parseHeader(block: any): any {
     const mixh = bufferToU8a(rlp.encode(block.mixHash));
     const nonce = bufferToU8a(rlp.encode(block.nonce));
     const seal = [u8aToHex(mixh), u8aToHex(nonce)];
@@ -116,4 +123,13 @@ export function parseHeader(block: any): any {
         seal,
         hash: block.hash
     };
+}
+
+export {
+    burn,
+    Logger,
+    log,
+    parseRes,
+    storePath,
+    parseHeader,
 }

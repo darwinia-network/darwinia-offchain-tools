@@ -3,9 +3,10 @@
  * service need to restart manualy when error occurs instead of
  * exiting process.
  */
-import { config } from "../../cfg";
-import Relay from "../relay";
+import { IConfig } from "../types";
 import { log, Logger } from "../utils";
+
+import API from "../api";
 import Fetcher from "./fetcher";
 import Service from "./service";
 
@@ -19,16 +20,18 @@ class RelayService extends Service {
     // next block
     public next: any;
     // relay apis
-    public relay: Relay;
+    public relay: API;
+    // config
+    protected config: IConfig;
 
-    constructor() {
+    constructor(config: IConfig) {
         super();
         config.sudo = config.relaySeed;
 
         this.next = null;
         this.lock = false;
-        this.relay = new Relay(config);
-        this.fetcher = new Fetcher();
+        this.relay = new API(config);
+        this.fetcher = new Fetcher(config);
     }
 
     public async start(): Promise<void> {

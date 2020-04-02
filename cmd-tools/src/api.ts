@@ -50,7 +50,7 @@ class API {
      * reset server
      *
      **/
-    reset() {
+    public reset() {
         const ex = this.api.tx.ethRelay.resetGenesisHeader(
             parseHeader(this.headers.genesis), this.headers.genesis.totalDifficulty,
         );
@@ -64,7 +64,7 @@ class API {
      *  Note: If you want to test sending tx to Ethereum, please checkout "./crashq.ts".
      *
      **/
-    relay() {
+    public relay() {
         const ex = this.api.tx.ethRelay.relayHeader(this.headers.container);
         this.st(ex, "relay header failed!");
     }
@@ -74,7 +74,7 @@ class API {
      * redeem our ring
      *
      **/
-    redeem() {
+    public redeem() {
         const ex = this.api.tx.ethBacking.redeem({
             Ring: this.headers.receipt,
         });
@@ -86,7 +86,7 @@ class API {
      *  transfer balance
      *
      **/
-    transfer() {
+    public transfer() {
         const ex = this.api.tx.balances.transfer(this.config.holder, 9999999999999);
         this.st(ex, "transfer failed!");
     }
@@ -96,7 +96,7 @@ class API {
      *  get balance
      *
      **/
-    async getBalance() {
+    public async getBalance() {
         const account = await this.api.query.system.account(this.account.address).catch(
             () => log("get balance failed!", Logger.Error),
         );
@@ -110,7 +110,7 @@ class API {
      * get receipt from darwinia baking
      *
      **/
-    getReceipt() {
+    public getReceipt() {
         const url = "https://alpha.evolution.land/api/darwinia/receipt?tx=";
         https.get(url + this.headers.receiptHash, (res: any) => {
             if (res.statusCode !== 200) {
@@ -140,7 +140,7 @@ class API {
      * burn, send tx
      *
      **/
-    sendTx() {
+    public sendTx() {
         const addr = this.web3.eth.accounts.wallet[0].address;
         const contract = burn(this.web3, addr);
 
@@ -173,7 +173,7 @@ class API {
      * get container header from darwinia baking
      *
      **/
-    async getContainerHeader() {
+    public async getContainerHeader() {
         this.headers.container = parseHeader(await this.web3.eth.getBlock(
             this.headers.receipt.header_hash,
         ).catch(() => {
@@ -187,7 +187,7 @@ class API {
      * get container header from darwinia baking
      *
      **/
-    async getGenesisHeader() {
+    public async getGenesisHeader() {
         this.headers.genesis = parseHeader(await this.web3.eth.getBlock(
             this.headers.container.number - 1,
         ).catch(() => {
@@ -201,7 +201,7 @@ class API {
      * pre-init for the tests
      *
      **/
-    async init() {
+    public async init() {
         // set darwinia api
         this.api = await ApiPromise.create({
             types: customizeType,
@@ -232,6 +232,11 @@ class API {
         }
     }
 
+    /** utils-1
+     *
+     * sign and send
+     *
+     */
     private st(ex: any, err: string) {
         ex.signAndSend(
             this.account, {}, (r: any) => {

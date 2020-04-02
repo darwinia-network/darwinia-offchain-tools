@@ -8,6 +8,7 @@
     "fetch": "ts-node src/bin/fetch.ts",
     "proof": "ts-node src/bin/proof.ts",
     "relay": "ts-node src/bin/relay.ts",
+    "relay:services": "pm2 tests/relay.json",
     "build": "tsc --strict",
     "lint": "tsc --noEmit && tslint -c ./tslint.json --type-check src/**/*.ts --strict"
   },
@@ -27,6 +28,7 @@
     "@types/chalk": "^2.2.0",
     "@types/node": "^13.9.8",
     "husky": "^4.2.3",
+    "pm2": "^4.2.3",
     "ts-lint": "^4.5.1",
     "ts-node": "^8.8.1",
     "typescript": "^3.8.3"

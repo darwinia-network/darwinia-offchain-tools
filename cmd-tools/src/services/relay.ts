@@ -34,6 +34,11 @@ class RelayService extends Service {
         this.fetcher = new Fetcher(config);
     }
 
+    /**
+     *
+     * start relay service
+     *
+     */
     public async start(): Promise<void> {
         await this.relay.init();
         await this.startFromBestHeaderHash();
@@ -64,6 +69,11 @@ class RelayService extends Service {
         }, 1000);
     }
 
+    /**
+     *
+     * stop relay service
+     *
+     */
     public async stop(): Promise<void> {
         clearInterval(this.interval);
     }
@@ -190,7 +200,7 @@ class RelayService extends Service {
             }
         }).catch(async () => {
             log("transaction failed, sleep for 3s and try again", Logger.Warn);
-            await new Promise(() => setTimeout(() => {
+            await new Promise(async () => setTimeout(async () => {
                 this.relayNext();
             }, 3000));
         });

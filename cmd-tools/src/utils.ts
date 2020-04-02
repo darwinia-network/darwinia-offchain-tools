@@ -26,6 +26,11 @@ enum Logger {
     Warn,
 }
 
+/**
+ *
+ * build the burn contract in darwinia
+ *
+ */
 function burn(web3: any, addr: any): any {
     return new web3.eth.Contract(abi, "0xb52FBE2B925ab79a821b261C82c5Ba0814AAA5e0")
         .methods.transferFrom(
@@ -36,6 +41,11 @@ function burn(web3: any, addr: any): any {
         );
 }
 
+/**
+ *
+ * simple logger
+ *
+ */
 async function log(s: any, logger?: Logger) {
     const l = chalk.dim("[ ");
     const r = chalk.dim(" ]:");
@@ -62,6 +72,12 @@ async function log(s: any, logger?: Logger) {
     }
 }
 
+
+/**
+ *
+ * simple logger
+ *
+ */
 async function parseRes(r: any) {
     const status = r.status;
     log(`Transaction status: ${status.type}`);
@@ -88,6 +104,11 @@ async function parseRes(r: any) {
     }
 }
 
+/**
+ *
+ * parse absolute path for storage, ref to the `root` in cofig
+ *
+ */
 function storePath(s: string): string {
     s = s.replace("~", os.homedir());
     const dirName = path.dirname(s);
@@ -101,6 +122,11 @@ function storePath(s: string): string {
 }
 
 
+/**
+ *
+ * parse eth header to darwinia-eth header
+ *
+ */
 function parseHeader(block: any): any {
     const mixh = bufferToU8a(rlp.encode(block.mixHash));
     const nonce = bufferToU8a(rlp.encode(block.nonce));

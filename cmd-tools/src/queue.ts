@@ -33,6 +33,11 @@ class Queue extends API {
         super(config);
     }
 
+    /**
+     *
+     * run queue filiter
+     *
+     */
     public async run(strategy: QueueCase) {
         switch (strategy) {
             case QueueCase.GetBalance:

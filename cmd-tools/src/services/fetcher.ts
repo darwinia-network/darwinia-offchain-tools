@@ -138,7 +138,11 @@ class Fetcher extends Service {
         }
     }
 
-    // check if table exists
+    /**
+     *
+     * check if table exists
+     *
+     */
     private async checkTable(start: number) {
         const exists = await this.knex.schema.hasTable("blocks");
         if (!exists) {
@@ -154,12 +158,16 @@ class Fetcher extends Service {
         }
     }
 
-    // restart fetcher
+    /**
+     *
+     *  restart fetcher
+     *
+     */
     private async restart(height: number) {
         log("reached the lastest block, sleep for 10 seconds", Logger.Warn);
-        setTimeout(async () => {
+        await new Promise(async () => setTimeout(async () => {
             await this.fetch(height);
-        }, 10000);
+        }, 10000));
     }
 }
 

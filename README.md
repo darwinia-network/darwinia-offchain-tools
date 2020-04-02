@@ -94,6 +94,6 @@ const config: IConfig = {
 };
 ```
 
-Go to `[cmd-tools][0]` and see how they works!
+Go to [cmd-tools][0] and see how they works!
 
 [0]: ./cmd-tools

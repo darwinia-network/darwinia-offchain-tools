@@ -1,25 +1,25 @@
 /**
  * could not re-use the relay part from /lib/relay.ts, because this
- * service need to restart manualy when error occurs instead of 
+ * service need to restart manualy when error occurs instead of
  * exiting process.
  */
-import Relay from "../lib/relay";
-import { config } from "../cfg";
-import { log, Logger } from "../lib/utils";
+import { config } from "../../cfg";
+import Relay from "../relay";
+import { log, Logger } from "../utils";
 import Fetcher from "./fetcher";
 import Service from "./service";
 
 class RelayService extends Service {
-    // next block
-    next: any;
-    // relay lock
-    lock: boolean;
-    // relay apis
-    relay: Relay;
     // fetcher service
-    fetcher: Fetcher;
+    public fetcher: Fetcher;
     // interval
-    interval: any;
+    public interval: any;
+    // relay lock
+    public lock: boolean;
+    // next block
+    public next: any;
+    // relay apis
+    public relay: Relay;
 
     constructor() {
         super();
@@ -41,7 +41,10 @@ class RelayService extends Service {
 
         // start relay queue
         this.interval = setInterval(async () => {
-            if (this.lock || this.next === null) return;
+            if (this.lock || this.next === null) {
+                return;
+            }
+
             if (
                 this.fetcher.max >= this.next.number + safe ||
                 (this.fetcher.max - this.fetcher.count) <= this.next.number
@@ -74,7 +77,7 @@ class RelayService extends Service {
         const bestHeaderHash = await this.relay.api.query.ethRelay.bestHeaderHash().catch(
             (e: any) => {
                 log(e, Logger.Warn);
-            }
+            },
         );
 
         // get last block from web3
@@ -82,13 +85,13 @@ class RelayService extends Service {
         const lastBlock = await this.relay.web3.eth.getBlock(bestHeaderHash.toString()).catch(
             (e: any) => {
                 log(e, Logger.Warn);
-            }
+            },
         );
 
         if (lastBlock === null) {
             log([
                 "get last block failed, please make sure that ",
-                "you have reset the genesis eth header"
+                "you have reset the genesis eth header",
             ].join(""), Logger.Error);
         }
 
@@ -111,7 +114,7 @@ class RelayService extends Service {
                         "tried too many times, please check your network first",
                         "if it is okay, check the fetcher process or raise an ",
                         "issue at: ",
-                        "https://github.com/darwinia-network/darwinia-offchain-tools/issues/new"
+                        "https://github.com/darwinia-network/darwinia-offchain-tools/issues/new",
                     ], Logger.Error);
                 }
 
@@ -123,7 +126,7 @@ class RelayService extends Service {
                 log("get block failed, wait 10s for fetcher process...", Logger.Warn);
                 next = await this.fetcher.getBlock(lastBlock.number + 1);
 
-                if (next != null && next != undefined) {
+                if (next !== null && next !== undefined) {
                     this.next = next;
                     clearInterval(retry);
                 }
@@ -133,7 +136,7 @@ class RelayService extends Service {
         this.next = next;
     }
 
-    /** 
+    /**
      *
      * relay the next eth block
      *
@@ -151,17 +154,21 @@ class RelayService extends Service {
 
             if (status.isInBlock) {
                 log(`Included at block hash: ${status.asInBlock.toHex()}`);
-                res.events && res.events.forEach(async (r: any) => {
+                if (res.events === undefined) {
+                    return;
+                }
+
+                res.events.forEach(async (r: any) => {
                     log(
                         "\t" +
                         r.phase.toString() +
                         `: ${r.event.section}.${r.event.method}` +
-                        r.event.data.toString()
+                        r.event.data.toString(),
                     );
 
                     if (r.event.data[0].isModule) {
                         const doc = await this.relay.api.registry.findMetaError(
-                            r.event.data[0].asModule
+                            r.event.data[0].asModule,
                         );
                         const err = `${doc.name}.${doc.section} - ${doc.documentation.join(" ")}`;
                         log(err, Logger.Warn);

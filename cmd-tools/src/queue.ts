@@ -40,7 +40,6 @@ export interface Headers {
  * @case-3: Relay a new header to darwinia
  * @case-4: Redeem balances from darwinia
  * @case-5: Relay with offchain worker
- * @case-6: Relay service
  *
  */
 export async function queue(strategy: number) {
@@ -127,7 +126,7 @@ export async function queue(strategy: number) {
                 clearInterval(interval);
                 log(
                     "congratulation! the relay process has just launched at the Mars 🚀",
-                    Logger.Success
+                    Logger.Success,
                 );
                 process.exit(0);
             } else {

@@ -1,20 +1,20 @@
+/* tslint:disable:no-var-requires */
 import * as path from "path";
 import Web3 from "web3";
-import burn from "../lib/burn";
-import { config } from "../cfg";
-import { storePath, log, Logger } from "../lib/utils";
+import { config } from "../../cfg";
+import burn from "../burn";
+import { log, Logger, storePath } from "../utils";
 
 let sent = 0;
 let receipt = 0;
 
 // init sqlite3 to save txs
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const knex = require("knex")({
     client: "sqlite3",
     connection: {
         filename: storePath(path.join(config.root, "crash_blocks.db")),
     },
-    useNullAsDefault: true
+    useNullAsDefault: true,
 });
 
 // check if table exists
@@ -79,6 +79,6 @@ async function loop() {
 }
 
 // main
-(function() {
+(() => {
     loop();
-}());
+})();

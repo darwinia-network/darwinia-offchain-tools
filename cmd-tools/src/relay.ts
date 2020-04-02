@@ -1,30 +1,27 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const customizeType = require("./types.json");
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { headers, receipt } = require("./headers.json");
-
 import * as https from "https";
-import Web3 from "web3";
-import Keyring from "@polkadot/keyring";
 import burn from "./burn";
-import { Config } from "../cfg";
-import { log, Logger, parseHeader, st } from "./utils";
-import { Event, Queue, Headers } from "./queue";
+import customizeType from "./json/types.json";
+import Keyring from "@polkadot/keyring";
+import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
+import { Config } from "../cfg";
+import { Event, Headers, Queue } from "./queue";
+import { headers, receipt } from "./json/headers.json";
+import { log, Logger, parseHeader, st } from "./utils";
 
 class Relay {
-    api: any;
-    web3: any;
+    public api: any;
+    public web3: any;
     // darwinia account
-    account: any;
+    public account: any;
     // relay config
-    config: Config;
+    public config: Config;
     // queue status
-    queue: Queue;
+    public queue: Queue;
     // receipt, container and genesis header suite.
-    headers: Headers;
+    public headers: Headers;
     // the last eth block
-    lastBlock: any;
+    public lastBlock: any;
 
     /** constructor
      *
@@ -34,12 +31,12 @@ class Relay {
     constructor(config: Config) {
         this.config = config;
 
-        // use default headers 
+        // use default headers
         if (!this.config.dynamic) {
             this.headers = {
                 genesis: headers[0],
                 container: headers[1],
-                receipt: receipt,
+                receipt,
                 receiptHash: "",
             };
         }
@@ -52,13 +49,13 @@ class Relay {
      **/
     reset() {
         const ex = this.api.tx.ethRelay.resetGenesisHeader(
-            parseHeader(this.headers.genesis), this.headers.genesis.totalDifficulty
+            parseHeader(this.headers.genesis), this.headers.genesis.totalDifficulty,
         );
         st.call(this, ex, "reset genesis block failed!");
     }
 
     /** step-2
-     * 
+     *
      *  relay a new header that contains an exists darwinia tx.
      *
      *  Note: If you want to test sending tx to Ethereum, please checkout "./crashq.ts".
@@ -70,12 +67,15 @@ class Relay {
     }
 
     /** step-3
-     *  
-     * redeem our ring 
+     *
+     * redeem our ring
      *
      **/
     redeem() {
-        const ex = this.api.tx.ethBacking.redeem({ "Ring": this.headers.receipt });
+        const ex = this.api.tx.ethBacking.redeem({
+            Ring: this.headers.receipt
+            ,
+        });
         st.call(this, ex, "redeem receipt failed!");
     }
 
@@ -97,9 +97,9 @@ class Relay {
     async getBalance() {
         const account = await this.api.query.system.account(this.account.address).catch(
             () => log("get balance failed!", Logger.Error)
-        );
-        log(`now we own ${account.data.free_ring} RING 💰`, Logger.Success);
+ ,       );
 
+        log(`now we own ${account.data.free_ring} RING 💰`, Logger.Success);
         this.queue.active = false;
     }
 
@@ -134,7 +134,7 @@ class Relay {
     }
 
     /** web3-1
-     * 
+     *
      * burn, send tx
      *
      **/
@@ -162,7 +162,7 @@ class Relay {
                 "if it has any eth and ring left.\n\n",
                 "if you think this is a bug, please raise an issue at: ",
                 "https://github.com/darwinia-network/darwinia-offchain-tools/issues/new"
-            ].join(""), Logger.Error);
+                ,].join(""), Logger.Error);
         });
     }
 
@@ -174,9 +174,9 @@ class Relay {
     async getContainerHeader() {
         this.headers.container = parseHeader(await this.web3.eth.getBlock(
             this.headers.receipt.header_hash
-        ).catch(() => {
-            log("get container block header failed", Logger.Error);
-        }));
+ ,       ).catch(() => {
+                log("get container block header failed", Logger.Error);
+            }));
         this.queue.active = false;
     }
 
@@ -188,9 +188,9 @@ class Relay {
     async getGenesisHeader() {
         this.headers.genesis = parseHeader(await this.web3.eth.getBlock(
             this.headers.container.number - 1
-        ).catch(() => {
-            log("get genesis block header failed", Logger.Error);
-        }));
+ ,       ).catch(() => {
+                log("get genesis block header failed", Logger.Error);
+            }));
         this.queue.active = false;
     }
 
@@ -226,7 +226,7 @@ class Relay {
         if (holder.data.free_ring.toString() === "0") {
             this.queue.events = this.queue.events.concat([
                 Event.GetBalance, Event.Transfer
-            ]);
+                ,]);
         }
     }
 }

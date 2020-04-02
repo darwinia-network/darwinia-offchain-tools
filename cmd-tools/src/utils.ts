@@ -1,11 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const chalk = require("chalk");
 
+import { bufferToU8a, u8aToHex } from "@polkadot/util";
+import { rlp } from "ethereumjs-util";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { bufferToU8a, u8aToHex } from "@polkadot/util";
-import { rlp } from "ethereumjs-util";
 
 export enum Logger {
     Error,
@@ -54,7 +54,7 @@ export async function parseRes(r: any) {
                 "\t" +
                 r.phase.toString() +
                 `: ${r.event.section}.${r.event.method}` +
-                r.event.data.toString()
+                r.event.data.toString(),
             );
 
             if (r.event.data[0].isModule) {
@@ -90,48 +90,30 @@ export function st(ex: any, err: string) {
             } catch (_) {
                 log(err, Logger.Error);
             }
-        }
+        },
     ).catch(() => log(err, Logger.Error));
 }
 
-export function parseHeader(block: any): Block {
+export function parseHeader(block: any): any {
     const mixh = bufferToU8a(rlp.encode(block.mixHash));
     const nonce = bufferToU8a(rlp.encode(block.nonce));
     const seal = [u8aToHex(mixh), u8aToHex(nonce)];
 
     return {
-        "parent_hash": block.parentHash,
-        "timestamp": block.timestamp,
-        "number": block.number,
-        "auth": block.miner,
-        "transaction_root": block.transactionsRoot,
-        "uncles_hash": block.sha3Uncles,
-        "extra_data": block.extraData,
-        "state_root": block.stateRoot,
-        "receipts_root": block.receiptsRoot,
-        "log_bloom": block.logsBloom,
-        "gas_used": block.gasUsed,
-        "gas_limit": block.gasLimit,
-        "difficulty": block.difficulty,
-        "seal": seal,
-        "hash": block.hash
+        parent_hash: block.parentHash,
+        timestamp: block.timestamp,
+        number: block.number,
+        auth: block.miner,
+        transaction_root: block.transactionsRoot,
+        uncles_hash: block.sha3Uncles,
+        extra_data: block.extraData,
+        state_root: block.stateRoot,
+        receipts_root: block.receiptsRoot,
+        log_bloom: block.logsBloom,
+        gas_used: block.gasUsed,
+        gas_limit: block.gasLimit,
+        difficulty: block.difficulty,
+        seal,
+        hash: block.hash
     };
-}
-
-export interface Block {
-    "parent_hash": string;
-    "timestamp": number;
-    "number": string;
-    "auth": string;
-    "transaction_root": string;
-    "uncles_hash": string;
-    "extra_data": string;
-    "state_root": string;
-    "receipts_root": string;
-    "log_bloom": string;
-    "gas_used": string;
-    "gas_limit": string;
-    "difficulty": number;
-    "seal": string[];
-    "hash": string;
 }

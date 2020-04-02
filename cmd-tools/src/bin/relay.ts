@@ -1,6 +1,6 @@
 import RelayService from "../services/relay";
 
-(async function() {
+(async () => {
     const service = new RelayService();
     await service.start();
 })();

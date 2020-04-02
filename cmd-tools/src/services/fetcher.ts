@@ -22,8 +22,7 @@ class Fetcher extends Service {
             connection: {
                 filename: storePath(path.join(config.root, "relay_blocks.db")),
             },
-            useNullAsDefault: true
-            ,
+            useNullAsDefault: true,
         });
 
         // init web3
@@ -70,8 +69,8 @@ class Fetcher extends Service {
         await this.checkTable(start);
         log(`start fetching eth headers from ${start}...`, Logger.EventMsg);
 
-        this.fetch(start).catch(() => {
-            log("eth header fetcher got broken", Logger.Error);
+        this.fetch(start).catch((e) => {
+            log(e, Logger.Error);
         });
     }
 
@@ -103,9 +102,9 @@ class Fetcher extends Service {
      * - reach the lastest block
      */
     private async fetch(height: number) {
-        const exists = await this.knex("blocks").whereExists(() => {
-            this.knex("blocks").select("*").from("blocks").whereRaw(`blocks.height = ${height}`);
-        });
+        const exists = await this.knex("blocks").whereExists(
+            this.knex("blocks").select("height").whereRaw(`blocks.height = ${height}`),
+        );
 
         if (exists.length > 0) {
             log("header exists, move to next...");
@@ -116,7 +115,6 @@ class Fetcher extends Service {
         log(`fetching the ${height} block...`);
         let block = await this.web3.eth.getBlock(height).catch(async (e: any) => {
             log(e, Logger.Warn);
-            await this.restart(height);
         });
 
         if (block != null) {
@@ -126,6 +124,8 @@ class Fetcher extends Service {
             await this.knex("blocks").insert({
                 block: JSON.stringify(block),
                 height,
+            }).catch((e: any) => {
+                log(e, Logger.Warn);
             });
 
             this.max = height;

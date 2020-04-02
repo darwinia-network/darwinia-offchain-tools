@@ -188,6 +188,11 @@ class RelayService extends Service {
                 }
                 this.lock = false;
             }
+        }).catch(async () => {
+            log("transaction failed, sleep for 3s and try again", Logger.Warn);
+            await new Promise(() => setTimeout(() => {
+                this.relayNext();
+            }, 3000));
         });
     }
 }

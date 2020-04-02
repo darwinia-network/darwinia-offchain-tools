@@ -1,0 +1,14 @@
+[Unit]
+Description=Darwinia Relay Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+# ExecStart=/usr/local/bin/myservice
+#
+# Better to auto generate at post-install
+ExecStart=darwinia-relay
+
+[Install]
+WantedBy=multi-user.target

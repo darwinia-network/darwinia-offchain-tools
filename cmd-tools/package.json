@@ -4,10 +4,10 @@
   "main": "bin/proof.ts",
   "license": "MIT",
   "scripts": {
-    "crash": "ts-node bin/crash.ts",
-    "fetch": "ts-node bin/fetch.ts",
-    "proof": "ts-node bin/proof.ts",
-    "relay": "ts-node bin/relay.ts",
+    "crash": "ts-node src/bin/crash.ts",
+    "fetch": "ts-node src/bin/fetch.ts",
+    "proof": "ts-node src/bin/proof.ts",
+    "relay": "ts-node src/bin/relay.ts",
     "build": "tsc --strict",
     "lint": "tsc --noEmit && tslint -c ./tslint.json --type-check src/**/*.ts --strict"
   },

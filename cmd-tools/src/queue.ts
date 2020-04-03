@@ -19,14 +19,12 @@ const TxFamily = [
 
 
 /** Event queue
- *
  * @case-0: Test all process
  * @case-1: Reset genesis header
  * @case-2: Get balances in current account
  * @case-3: Relay a new header to darwinia
  * @case-4: Redeem balances from darwinia
  * @case-5: Relay with offchain worker
- *
  */
 class Queue extends API {
     constructor(config: IConfig) {
@@ -34,9 +32,7 @@ class Queue extends API {
     }
 
     /**
-     *
      * run queue filiter
-     *
      */
     public async run(strategy: QueueCase) {
         switch (strategy) {

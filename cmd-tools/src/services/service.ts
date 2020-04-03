@@ -1,7 +1,5 @@
 /**
- *
  * abstract service class
- *
  */
 import { IConfig } from "../types";
 

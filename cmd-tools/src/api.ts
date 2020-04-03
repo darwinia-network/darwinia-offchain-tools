@@ -26,11 +26,6 @@ class API {
     // receipt, container and genesis header suite.
     public headers: IHeaders;
 
-    /** constructor
-     *
-     * construct relay with config
-     *
-     **/
     constructor(config: IConfig) {
         this.config = config;
 

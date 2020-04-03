@@ -39,9 +39,7 @@ class Crash extends Service {
     }
 
     /**
-     *
      * start crash service
-     *
      */
     public async start(): Promise<void> {
         log("start tx loop...");
@@ -58,18 +56,14 @@ class Crash extends Service {
     }
 
     /**
-     *
      * stop crash service
-     *
      */
     public async stop(): Promise<void> {
         this.loop = false;
     }
 
     /**
-     *
      * check table exists
-     *
      */
     private async checkTable(): Promise<void> {
         const exists = await this.knex.schema.hasTable("blocks");
@@ -89,9 +83,7 @@ class Crash extends Service {
 
 
     /**
-     *
      * send redeem tx
-     *
      */
     private async tx(): Promise<void> {
         this.sent += 1;

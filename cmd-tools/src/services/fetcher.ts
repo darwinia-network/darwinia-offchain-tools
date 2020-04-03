@@ -33,9 +33,7 @@ class Fetcher extends Service {
     }
 
     /**
-     *
      * get block from sqlite
-     *
      */
     public async getBlock(num: number) {
         const tx = await this.knex("blocks")
@@ -50,9 +48,7 @@ class Fetcher extends Service {
     }
 
     /**
-     *
      * loop block and tx to sqlite
-     *
      */
     public async start(start?: number): Promise<void> {
         if (start === undefined) {
@@ -75,9 +71,7 @@ class Fetcher extends Service {
     }
 
     /** stop loop
-     *
      * we can restart it just by runing `this.start()` again.
-     *
      */
     public async stop(): Promise<void> {
         log("stop fetcher process...", Logger.EventMsg);
@@ -86,9 +80,7 @@ class Fetcher extends Service {
 
 
     /**
-     *
-     * if fetcher is running
-     *
+     * check if fetcher is running
      */
     public status(): boolean {
         return this.loop;
@@ -139,9 +131,7 @@ class Fetcher extends Service {
     }
 
     /**
-     *
      * check if table exists
-     *
      */
     private async checkTable(start: number) {
         const exists = await this.knex.schema.hasTable("blocks");
@@ -159,9 +149,7 @@ class Fetcher extends Service {
     }
 
     /**
-     *
      *  restart fetcher
-     *
      */
     private async restart(height: number) {
         log("reached the lastest block, sleep for 10 seconds", Logger.Warn);

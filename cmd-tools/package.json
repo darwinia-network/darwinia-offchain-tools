@@ -19,10 +19,14 @@
     }
   },
   "dependencies": {
+    "@polkadot/api": "^1.9.1",
+    "@polkadot/util": "^2.7.1",
     "chalk": "^3.0.0",
+    "ethereumjs-util": "^6.2.0",
     "knex": "^0.20.13",
     "prompts": "^2.3.2",
-    "sqlite3": "^4.1.1"
+    "sqlite3": "^4.1.1",
+    "web3": "^1.2.6"
   },
   "devDependencies": {
     "@types/chalk": "^2.2.0",

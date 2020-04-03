@@ -67,33 +67,6 @@ const config: IConfig = {
 Don't worry if you don't know how to check the tips above, the tools below will help you testing darwinia with just putting them inside a black-box.
 
 
-## Test Tools
-
-### Integration Tests
-
-> Please make sure your local darwinia node is running and ports `ws` to `9944`, this is all you need.
-
-```
-𝝺 yarn proof
-yarn run v1.21.1
-$ ts-node ./scripts/relay.ts
-? Test which process? › - Use arrow-keys. Return to submit.
-❯   All - Test all process dynamic
-    Get Balances
-    Genesis header
-    Relay header
-    Redeem
-```
-
-### Relay services
-
-```
-yarn relay:services
-```
-
-This tool will raise 3 relay services to test the eth-relay in darwinia.
-
-
 ## Services
 
 ### Crash Uncle
@@ -122,6 +95,33 @@ yarn fetch
 
 Keep fetching eth blocks, convert them into darwinia-eth-blocks and save in `~/.darwinia/relay_blocks.db` by default.
 
+
+## Test Tools
+
+### Integration Tests
+
+> Please make sure your local darwinia node is running and ports `ws` to `9944`, this is all you need.
+
+```
+𝝺 yarn proof
+yarn run v1.21.1
+$ ts-node ./scripts/relay.ts
+? Test which process? › - Use arrow-keys. Return to submit.
+❯   All - Test all process dynamic
+    Get Balances
+    Genesis header
+    Relay header
+    Redeem
+```
+
+### Relay services
+
+```
+yarn relay:services
+```
+
+
+This tool will raise 3 relay services to test the eth-relay in darwinia.
 
 ## Note
 

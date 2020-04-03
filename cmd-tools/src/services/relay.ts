@@ -35,34 +35,56 @@ class RelayService extends Service {
     }
 
     /**
-     *
      * start relay service
-     *
      */
     public async start(): Promise<void> {
-        await this.relay.init();
-        await this.startFromBestHeaderHash();
+        await this.relay.init().catch((e: any) => {
+            log(e, Logger.Warn);
+            log("polkadot.js init failed, please check your network", Logger.Error);
+        });
+        await this.startFromBestHeaderHash().catch((e: any) => {
+            log(e, Logger.Warn);
+            log([
+                "get best header hash from darwinia failed, ",
+                "please check your network",
+            ], Logger.Error);
+        });
 
         // set safe block, if it is zero use lucky 7 or safe * 2 in darwinia
-        let safe: number = await this.relay.api.query.ethRelay.numberOfBlocksSafe();
+        let safe: number = await this.relay.api.query.ethRelay.numberOfBlocksSafe().catch(
+            (e: any) => {
+                log(e, Logger.Warn);
+                log([
+                    "get safe block from darwinia failed, ",
+                    "please check your network connection",
+                ], Logger.Error);
+            },
+        );
         safe = safe === 0 ? 7 : safe * 2;
 
         // start relay queue
         this.interval = setInterval(async () => {
-            if (this.lock || this.next === null) {
+            if (this.lock || this.next === null || this.next === undefined) {
                 return;
             }
 
             if (
-                this.fetcher.max >= this.next.number + safe ||
-                (this.fetcher.max - this.fetcher.count) <= this.next.number
+                (this.fetcher.max >= this.next.number + safe ||
+                    (this.fetcher.max - this.fetcher.count) <= this.next.number) &&
+                this.fetcher.status()
             ) {
-                await this.fetcher.stop();
+                await this.fetcher.stop().catch((e: any) => {
+                    log(e, Logger.Warn);
+                    log("stop fetcher failed, try after 1s...", Logger.Error);
+                });
             } else if (
                 this.fetcher.max <= this.next.number + safe / 3 &&
                 this.fetcher.status() === false
             ) {
-                await this.fetcher.start(this.next.number);
+                await this.fetcher.start(this.next.number).catch((e: any) => {
+                    log(e, Logger.Warn);
+                    log("start fetcher failed, try after 1s...", Logger.Error);
+                });
             }
 
             this.relayNext();
@@ -70,9 +92,7 @@ class RelayService extends Service {
     }
 
     /**
-     *
      * stop relay service
-     *
      */
     public async stop(): Promise<void> {
         clearInterval(this.interval);
@@ -108,9 +128,15 @@ class RelayService extends Service {
             ].join(""), Logger.Error);
         }
 
-        log(`got last eth block ${lastBlock.number} from ethereum`);
+        // sometimes the process not sync
+        if (lastBlock !== undefined) {
+            log(`got last eth block ${lastBlock.number} from ethereum`);
+        }
+
         this.next = lastBlock;
-        await this.getNextBlock();
+        await this.getNextBlock().catch((e: any) => {
+            log(e, Logger.Warn);
+        });
     }
 
     /**
@@ -132,12 +158,16 @@ class RelayService extends Service {
                 }
 
                 if (!this.fetcher.status()) {
-                    await this.fetcher.start(lastBlock.number);
+                    await this.fetcher.start(lastBlock.number).catch((e: any) => {
+                        log(e, Logger.Warn);
+                    });
                 }
 
                 tried += 1;
                 log("get block failed, wait 10s for fetcher process...", Logger.Warn);
-                next = await this.fetcher.getBlock(lastBlock.number + 1);
+                next = await this.fetcher.getBlock(lastBlock.number + 1).catch((e: any) => {
+                    log(e, Logger.Warn);
+                });
 
                 if (next !== null && next !== undefined) {
                     this.next = next;
@@ -150,9 +180,7 @@ class RelayService extends Service {
     }
 
     /**
-     *
      * relay the next eth block
-     *
      */
     private relayNext() {
         this.lock = true;
@@ -187,14 +215,21 @@ class RelayService extends Service {
                         log(err, Logger.Warn);
 
                         succeed = false;
-                        await this.startFromBestHeaderHash();
+                        await this.startFromBestHeaderHash().catch((e: any) => {
+                            log(e, Logger.Warn);
+                        });
                     }
                 });
             } else if (status.isFinalized) {
                 log(`Finalized block hash: ${status.asFinalized.toHex()}`);
                 if (succeed) {
-                    log(`relay block ${this.next.number}`, Logger.Success);
-                    await this.getNextBlock();
+                    // sometimes the process not sync
+                    if (this.next && this.next.number) {
+                        log(`relay block ${this.next.number}`, Logger.Success);
+                    }
+                    await this.getNextBlock().catch((e: any) => {
+                        log(e, Logger.Warn);
+                    });
                 }
                 this.lock = false;
             }
@@ -202,7 +237,9 @@ class RelayService extends Service {
             log("transaction failed, sleep for 3s and try again", Logger.Warn);
             await new Promise(async () => setTimeout(async () => {
                 this.relayNext();
-            }, 3000));
+            }, 3000)).catch((e: any) => {
+                log(e, Logger.Warn);
+            });
         });
     }
 }

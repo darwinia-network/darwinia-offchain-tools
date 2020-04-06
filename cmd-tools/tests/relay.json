@@ -1,0 +1,15 @@
+{
+    "apps": [{
+	"name": "relay-1",
+	"script": "yarn run relay",
+	"cwd": "../"
+    }, {
+	"name": "relay-2",
+	"script": "yarn run relay",
+	"cwd": "../"
+    }, {
+	"name": "relay-3",
+	"script": "yarn run relay",
+	"cwd": "../"
+    }]
+}

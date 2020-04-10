@@ -214,13 +214,13 @@ class API {
         // queue data
         this.queue = {
             active: false,
-            events: [],
+            events: [Event.None],
             success: true,
         };
 
         // transfer to the contract holder
         const holder = await this.api.query.system.account(this.config.holder);
-        if (holder.data.free_ring.toString() === "0") {
+        if (holder.data.free.toString() === "0") {
             this.queue.events = this.queue.events.concat([
                 Event.GetBalance, Event.Transfer,
             ]);

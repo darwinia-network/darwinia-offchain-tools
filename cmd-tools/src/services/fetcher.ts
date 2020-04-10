@@ -93,7 +93,7 @@ class Fetcher extends Service {
      * - got null block
      * - reach the lastest block
      */
-    private async fetch(height: number) {
+    public async fetch(height: number) {
         const exists = await this.knex("blocks").whereExists(
             this.knex("blocks").select("height").whereRaw(`blocks.height = ${height}`),
         );

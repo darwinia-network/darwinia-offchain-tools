@@ -17,6 +17,7 @@ const config: IConfig = {
 
     // DO NOT change this: this is the address of the redeem
     // contract holder in darwinia
+    // TODO: this contract address will be different across chain networks
     holder: "0xd7b504ddbe25a05647312daa8d0bbbafba360686241b7e193ca90f9b01f95faa",
 
     // this seed is used for eth-relay service, you can either use this config
@@ -38,7 +39,7 @@ const config: IConfig = {
     // runnig out of ring will cause our web3 requests get reverted by EVM if
     // you are wondering how to get some ring, plz check out the README under
     // this directory
-    priv: "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318",
+    priv: "REPLACE_WITH_YOUR_ETH_ACCOUNT_PRIVATE_KEY",
 
     // storage root
     //

@@ -5,9 +5,11 @@
 
 To install and set up Darwinia-Proof-Tools, 
 
-set /config/default.json
+Generate config file:
 
-run:
+`cp config/default.json.example config/default.json`
+
+Set configuration info:
 
 ```javascript
 {
@@ -42,6 +44,10 @@ yarn reset
 ## Command-line usage
 
 > these tools are provided in `darwinia-offchain-tools/cmd-tools`, the `yarn` or `yarn xxx` should exec under that directory.
+
+Generate config file:
+
+`cp cmd-tools/cfg.ts.example cmd-tools/cfg.ts`
 
 ```js
 const config: IConfig = {

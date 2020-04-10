@@ -51,6 +51,8 @@ class Fetcher extends Service {
      * loop block and tx to sqlite
      */
     public async start(start?: number): Promise<void> {
+        await this.checkTable(start);
+
         if (start === undefined) {
             const max = await this.knex("blocks").max("height");
             start = max[0]["max(`height`)"];
@@ -62,10 +64,9 @@ class Fetcher extends Service {
         this.count = count[0]["count(`height`)"];
 
         this.loop = true;
-        await this.checkTable(start);
         log(`start fetching eth headers from ${start}...`, Logger.EventMsg);
 
-        this.fetch(start).catch((e) => {
+        await this.fetch(start).catch((e) => {
             log(e, Logger.Error);
         });
     }
@@ -111,7 +112,7 @@ class Fetcher extends Service {
 
         if (block != null) {
             block = parseHeader(block);
-            log(`got block ${block.hash}`);
+            log(`got block ${block.number} - ${block.hash}`);
             log(`\t${JSON.stringify(block)}`);
             await this.knex("blocks").insert({
                 block: JSON.stringify(block),

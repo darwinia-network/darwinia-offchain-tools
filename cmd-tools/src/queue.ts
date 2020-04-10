@@ -80,33 +80,35 @@ class Queue extends API {
             }
 
             // move to next event if current event finished
-            switch (this.queue.events[0]) {
-                case Event.SendTx:
-                    log("ethereum has received our tx!");
-                    break;
-                case Event.GetReceipt:
-                    log(`\t${JSON.stringify(this.headers.receipt)}`);
-                    break;
-                case Event.GetContainerHeader:
-                    log(`\t${JSON.stringify(this.headers.container)}`);
-                    break;
-                case Event.GetGenesisHeader:
-                    log(`\t${JSON.stringify(this.headers.genesis)}`);
-                    break;
-                case Event.Reset:
-                    log("reset header succeed! 📦", Logger.Success);
-                    break;
-                case Event.Relay:
-                    log("relay header succeed! 🎉", Logger.Success);
-                    break;
-                case Event.Redeem:
-                    log("redeem receipt succeed! 🍺", Logger.Success);
-                    break;
-                case Event.Transfer:
-                    log("transfered 9999 RING to the contract holder");
-                    break;
-                default:
-                    break;
+            if (this.queue.success) {
+                switch (this.queue.events[0]) {
+                    case Event.SendTx:
+                        log("ethereum has received our tx!");
+                        break;
+                    case Event.GetReceipt:
+                        log(`\t${JSON.stringify(this.headers.receipt)}`);
+                        break;
+                    case Event.GetContainerHeader:
+                        log(`\t${JSON.stringify(this.headers.container)}`);
+                        break;
+                    case Event.GetGenesisHeader:
+                        log(`\t${JSON.stringify(this.headers.genesis)}`);
+                        break;
+                    case Event.Reset:
+                        log("reset header succeed! 📦", Logger.Success);
+                        break;
+                    case Event.Relay:
+                        log("relay header succeed! 🎉", Logger.Success);
+                        break;
+                    case Event.Redeem:
+                        log("redeem receipt succeed! 🍺", Logger.Success);
+                        break;
+                    case Event.Transfer:
+                        log("transfered 9999 RING to the contract holder");
+                        break;
+                    default:
+                        break;
+                }
             }
 
             this.queue.active = true;

@@ -147,6 +147,6 @@ in command line or click [https://faucet.ropsten.be/][0] and paste `0x2c7536E360
 If you don't know what is `types.json` or how to use it, please ignore these lines, it doesn't matter, or you can rise a new issue or mail us, welcome to join darwinia!
 
 [0]: https://faucet.ropsten.be/
-[1]: https://github.com/darwinia-network/darwinia/blob/master/.maintain/types/types.json
+[1]: https://github.com/darwinia-network/darwinia/blob/master/runtime/crab/types.json
 [guide]: https://github.com/darwinia-network/darwinia/wiki/Eth-backing-tutorial
 [node]: https://github.com/darwinia-network/darwinia

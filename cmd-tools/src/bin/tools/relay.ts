@@ -6,7 +6,7 @@ import config from "../../../cfg";
 
 (async () => {
     if (process.argv.length < 3) {
-        console.log("usage: ./relay <number>/<height>");
+        console.log("usage: ./relay <height>/<hash>");
         process.exit(0);
     }
 
@@ -17,13 +17,13 @@ import config from "../../../cfg";
     let api = new API(config);
     await api.init();
 
-    // reset header
+    // set the relay block
     api.queue.active = true;
     api.headers.container = await api.web3.eth.getBlock(block);
     log(`fetching the ${block} from infura...`);
 
-    // reset header
-    api.reset();
+    // relay header
+    api.relay();
     log(`relay header`, Logger.EventMsg);
 
     // exit process

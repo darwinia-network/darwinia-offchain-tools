@@ -5,7 +5,7 @@ import Web3 from "web3";
 
 (async () => {
     if (process.argv.length < 3) {
-        console.log("usage: getBlock <number>/<height>");
+        console.log("usage: getBlock <height>/<hash>");
         process.exit(0);
     }
 

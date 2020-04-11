@@ -6,7 +6,7 @@ import config from "../../../cfg";
 
 (async () => {
     if (process.argv.length < 3) {
-        console.log("usage: ./reset.ts <number>/<height>");
+        console.log("usage: ./reset.ts <height>/<hash>");
         process.exit(0);
     }
 
@@ -17,7 +17,7 @@ import config from "../../../cfg";
     let api = new API(config);
     await api.init();
 
-    // reset header
+    // set the reset block
     api.queue.active = true;
     api.headers.genesis = await api.web3.eth.getBlock(block);
     log(`fetching the ${block} from infura...`);

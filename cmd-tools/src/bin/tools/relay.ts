@@ -6,7 +6,7 @@ import config from "../../../cfg";
 
 (async () => {
     if (process.argv.length < 3) {
-        console.log("usage: ./reset <number>/<height>");
+        console.log("usage: ./relay <number>/<height>");
         process.exit(0);
     }
 
@@ -24,7 +24,7 @@ import config from "../../../cfg";
 
     // reset header
     api.reset();
-    log(`reset header`, Logger.EventMsg);
+    log(`relay header`, Logger.EventMsg);
 
     // exit process
     setInterval(() => {

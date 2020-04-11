@@ -1,4 +1,4 @@
-#!usr/bin/env ts-node
+#!/usr/bin/env ts-node
 
 import config from "../../../cfg";
 import Web3 from "web3";

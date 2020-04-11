@@ -84,7 +84,11 @@ class RelayService extends Service {
         log("set eth-relay intervals...", Logger.EventMsg);
 
         // if there is no safe block. default to 7
-        if (this.safe === 0 || undefined || null) {
+        if (
+            this.safe === 0 ||
+                this.safe === undefined ||
+                this.safe === null
+        ) {
             this.safe = 7;
         } else {
             this.safe *= 2;

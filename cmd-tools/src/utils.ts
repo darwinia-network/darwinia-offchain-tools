@@ -88,7 +88,7 @@ async function parseRes(r: any) {
 
             if (r.event.data[0].isModule) {
                 const doc = await this.api.registry.findMetaError(r.event.data[0].asModule);
-                const err = `${doc.name}.${doc.section} - ${doc.documentation.join(" ")}`;
+                const err = `${doc.name}.${doc.section} -${doc.documentation.join(" ")}`;
                 log(err, Logger.Error);
             }
         });

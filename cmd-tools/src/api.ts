@@ -96,7 +96,7 @@ class API {
             () => log("get balance failed!", Logger.Error),
         );
 
-        log(`now we own ${account.data.free_ring} RING 💰`, Logger.Success);
+        log(`now we own ${account.data.free} RING 💰`, Logger.Success);
         this.queue.active = false;
     }
 

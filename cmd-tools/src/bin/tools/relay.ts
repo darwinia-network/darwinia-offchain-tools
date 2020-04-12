@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
 import API from "../../api";
-import { log, Logger } from "../../utils";
+import { log, Logger, parseHeader } from "../../utils";
 import config from "../../../cfg";
 
 (async () => {
@@ -19,8 +19,18 @@ import config from "../../../cfg";
 
     // set the relay block
     api.queue.active = true;
-    api.headers.container = await api.web3.eth.getBlock(block);
+
+    // eth block
     log(`fetching the ${block} from infura...`);
+    const ethBlock = await api.web3.eth.getBlock(block);
+    log("block: ethereum block");
+    log(ethBlock);
+
+    // darwinia block
+    const darwiniaBlock = parseHeader(ethBlock);
+    log("block: darwinia block");
+    log(darwiniaBlock);
+    api.headers.container = darwiniaBlock;
 
     // relay header
     api.relay();

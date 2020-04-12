@@ -23,13 +23,13 @@ import config from "../../../cfg";
     // eth block
     log(`fetching the ${block} from infura...`);
     const ethBlock = await api.web3.eth.getBlock(block);
-    log("Block = ethereum block");
-    log(ethBlock.toString());
+    log("Block - ethereum block");
+    log(JSON.stringify(ethBlock, null, 2));
 
     // darwinia block
     const darwiniaBlock = parseHeader(ethBlock);
     log("Block - darwinia block");
-    log(darwiniaBlock.toString());
+    log(JSON.stringify(darwiniaBlock, null, 2));
     api.headers.container = darwiniaBlock;
 
     // relay header

@@ -96,7 +96,7 @@ class API {
             () => log("get balance failed!", Logger.Error),
         );
 
-        log(`now we own ${account.data.free_ring} RING 💰`, Logger.Success);
+        log(`now we own ${account.data.free} RING 💰`, Logger.Success);
         this.queue.active = false;
     }
 
@@ -214,13 +214,13 @@ class API {
         // queue data
         this.queue = {
             active: false,
-            events: [],
+            events: [Event.None],
             success: true,
         };
 
         // transfer to the contract holder
         const holder = await this.api.query.system.account(this.config.holder);
-        if (holder.data.free_ring.toString() === "0") {
+        if (holder.data.free.toString() === "0") {
             this.queue.events = this.queue.events.concat([
                 Event.GetBalance, Event.Transfer,
             ]);

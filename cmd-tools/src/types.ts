@@ -1,4 +1,5 @@
 export enum Event {
+    None,
     GetBalance,
     GetReceipt,
     GetContainerHeader,

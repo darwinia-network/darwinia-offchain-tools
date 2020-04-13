@@ -15,6 +15,8 @@ class RelayService extends Service {
     public fetcher: Fetcher;
     // interval
     public interval: any;
+    // stopInterval
+    public stopInterval: any;
     // relay lock
     public lock: boolean;
     // next block
@@ -23,6 +25,8 @@ class RelayService extends Service {
     public relay: API;
     // config
     protected config: IConfig;
+    // safe block
+    private safe: number;
 
     constructor(config: IConfig) {
         super();
@@ -47,11 +51,11 @@ class RelayService extends Service {
             log([
                 "get best header hash from darwinia failed, ",
                 "please check your network",
-            ], Logger.Error);
+            ].join(""), Logger.Error);
         });
 
         // set safe block, if it is zero use lucky 7 or safe * 2 in darwinia
-        let safe: number = await this.relay.api.query.ethRelay.numberOfBlocksSafe().catch(
+        this.safe = await this.relay.api.query.ethRelay.numberOfBlocksSafe().catch(
             (e: any) => {
                 log(e, Logger.Warn);
                 log([
@@ -60,7 +64,57 @@ class RelayService extends Service {
                 ], Logger.Error);
             },
         );
-        safe = safe === 0 ? 7 : safe * 2;
+
+        await this.setInvervals();
+    }
+
+    /**
+     * stop relay service
+     */
+    public async stop(): Promise<void> {
+        clearInterval(this.interval);
+        clearInterval(this.stopInterval);
+    }
+
+    /**
+     * interval sets
+     * @description - A stand-alone async method to make requests in order
+     */
+    private async setInvervals() {
+        log("set eth-relay intervals...", Logger.EventMsg);
+
+        // if there is no safe block. default to 7
+        if (
+            this.safe === 0 ||
+                this.safe === undefined ||
+                this.safe === null
+        ) {
+            this.safe = 7;
+        } else {
+            this.safe *= 2;
+        }
+
+        // stop interval, this should work parallel with the relay interval
+        // because that one has block calls
+        this.stopInterval = setInterval(async () => {
+            if (this.next === null || this.next === undefined) {
+                return;
+            }
+
+            if (
+                (this.fetcher.max >= this.next.number + this.safe ||
+                    (this.fetcher.max - this.fetcher.count) <= this.next.number) &&
+                    this.fetcher.status()
+            ) {
+                log(`safe-height: ${this.safe}`);
+                log(`fetcher-max: ${this.fetcher.max}`);
+                log(`darwinia-height: ${this.next.number}`);
+                await this.fetcher.stop().catch((e: any) => {
+                    log(e, Logger.Warn);
+                    log("stop fetcher failed, try after 1s...", Logger.Error);
+                });
+            }
+        }, 500);
 
         // start relay queue
         this.interval = setInterval(async () => {
@@ -69,16 +123,7 @@ class RelayService extends Service {
             }
 
             if (
-                (this.fetcher.max >= this.next.number + safe ||
-                    (this.fetcher.max - this.fetcher.count) <= this.next.number) &&
-                this.fetcher.status()
-            ) {
-                await this.fetcher.stop().catch((e: any) => {
-                    log(e, Logger.Warn);
-                    log("stop fetcher failed, try after 1s...", Logger.Error);
-                });
-            } else if (
-                this.fetcher.max <= this.next.number + safe / 3 &&
+                this.fetcher.max <= this.next.number + this.safe / 3 &&
                 this.fetcher.status() === false
             ) {
                 await this.fetcher.start(this.next.number).catch((e: any) => {
@@ -92,10 +137,27 @@ class RelayService extends Service {
     }
 
     /**
-     * stop relay service
+     * get ethereum block by number or string, with logs
+     * @param block number | string
      */
-    public async stop(): Promise<void> {
-        clearInterval(this.interval);
+    private async getBlock(block: number | string): Promise<any> {
+        // get last block from web3
+        log("fetching the last eth block in darwinia from ethereum...", Logger.EventMsg);
+        const lastBlock = await this.relay.web3.eth.getBlock(block).catch(
+            (e: any) => {
+                log(e, Logger.Warn);
+            },
+        );
+
+        if (lastBlock === null || lastBlock === undefined) {
+            log([
+                "get last block failed, please make sure that ",
+                "there is a genesis eth header in darwinia",
+            ].join(""), Logger.Error);
+        }
+
+        log(`got eth block ${lastBlock.number} from ethereum`);
+        return lastBlock;
     }
 
     /**
@@ -113,26 +175,9 @@ class RelayService extends Service {
             },
         );
 
-        // get last block from web3
-        log("fetching the last eth block in darwinia from ethereum...", Logger.EventMsg);
-        const lastBlock = await this.relay.web3.eth.getBlock(bestHeaderHash.toString()).catch(
-            (e: any) => {
-                log(e, Logger.Warn);
-            },
-        );
+        const lastBlock = await this.getBlock(bestHeaderHash.toString());
 
-        if (lastBlock === null) {
-            log([
-                "get last block failed, please make sure that ",
-                "you have reset the genesis eth header",
-            ].join(""), Logger.Error);
-        }
-
-        // sometimes the process not sync
-        if (lastBlock !== undefined) {
-            log(`got last eth block ${lastBlock.number} from ethereum`);
-        }
-
+        // start next loop
         this.next = lastBlock;
         await this.getNextBlock().catch((e: any) => {
             log(e, Logger.Warn);

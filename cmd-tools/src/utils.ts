@@ -8,7 +8,7 @@
  * all support for api.
  *
  */
-const chalk = require("chalk");
+import chalk from "chalk";
 
 import { abi } from "./json/abi.json";
 import { bufferToU8a, u8aToHex } from "@polkadot/util";
@@ -68,7 +68,6 @@ async function log(s: any, logger?: Logger) {
     }
 }
 
-
 /**
  * simple logger
  */
@@ -76,6 +75,7 @@ async function parseRes(r: any) {
     const status = r.status;
     log(`Transaction status: ${status.type}`);
 
+    log(status);
     if (status.isInBlock) {
         log(`Included at block hash: ${status.asInBlock.toHex()}`);
         r.events && r.events.forEach(async (r: any) => {
@@ -88,7 +88,7 @@ async function parseRes(r: any) {
 
             if (r.event.data[0].isModule) {
                 const doc = await this.api.registry.findMetaError(r.event.data[0].asModule);
-                const err = `${doc.name}.${doc.section} - ${doc.documentation.join(" ")}`;
+                const err = `${doc.name}.${doc.section} -${doc.documentation.join(" ")}`;
                 log(err, Logger.Error);
             }
         });
@@ -112,7 +112,6 @@ function storePath(s: string): string {
 
     return s;
 }
-
 
 /**
  * parse eth header to darwinia-eth header

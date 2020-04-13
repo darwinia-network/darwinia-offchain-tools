@@ -1,11 +1,22 @@
 /* tslint:disable:no-var-requires */
 import config from "../../cfg";
+import { log, Logger } from "../../src/utils";
 import { Queue, QueueCase } from "../queue";
 
 const prompts = require("prompts");
 
 // main
 (async () => {
+    if (config.web3.indexOf("ropsten") === -1 && config.dynamic === false) {
+        log([
+            "the static proof process only works under ropsten, ",
+            "if you want to run this under mainnet, please set ",
+            "`dynamic` to true in cfg.ts",
+        ].join(""), Logger.Warn);
+
+        process.exit(0);
+    }
+
     const res = await prompts({
         choices: [{
             description: "Test all process dynamic",

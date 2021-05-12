@@ -49,7 +49,7 @@
     "lodash": "^4.17.19",
     "lusca": "^1.6.1",
     "mongoose": "^5.7.5",
-    "nodemailer": "^6.3.0",
+    "nodemailer": "^6.4.16",
     "pug": "^2.0.4",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
